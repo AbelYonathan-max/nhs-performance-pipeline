@@ -1,0 +1,40 @@
+/// RTT treatment functions.
+table Specialty
+	lineageTag: 2eb74f1f-562e-5827-9241-8a0ec688dd95
+
+	column Code
+		dataType: string
+		lineageTag: 8892aca3-3fb9-505a-a8cd-6d2eaceae19f
+		summarizeBy: none
+		sourceColumn: treatment_function_code
+
+		annotation SummarizationSetBy = Automatic
+
+	column Specialty
+		dataType: string
+		lineageTag: d299c57f-d9a6-5f8d-bd36-ad6d3bcc01d4
+		summarizeBy: none
+		sourceColumn: treatment_function_name
+
+		annotation SummarizationSetBy = Automatic
+
+	column 'Is total'
+		dataType: int64
+		isHidden
+		lineageTag: e0db824d-0a85-5fe5-9759-56fbba186858
+		summarizeBy: none
+		sourceColumn: is_total
+
+		annotation SummarizationSetBy = Automatic
+
+	partition Specialty = m
+		mode: import
+		source =
+				let
+				    Source = LoadParquet("dim_treatment_function"),
+				    Kept = Table.SelectColumns(Source, {"treatment_function_code", "treatment_function_name", "is_total"}),
+				    Typed = Table.TransformColumnTypes(Kept, {{"treatment_function_code", type text}, {"treatment_function_name", type text}, {"is_total", Int64.Type}})
+				in
+				    Typed
+
+	annotation PBI_ResultType = Table

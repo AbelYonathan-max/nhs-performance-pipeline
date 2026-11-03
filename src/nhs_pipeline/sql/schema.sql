@@ -119,6 +119,7 @@ CREATE TABLE model_backtest (
     horizon         INTEGER NOT NULL,
     mae             REAL NOT NULL,
     n               INTEGER NOT NULL,
+    chosen          INTEGER NOT NULL,             -- 1 = used for the published forecast
     PRIMARY KEY (metric, model, horizon)
 );
 

@@ -1,0 +1,43 @@
+relationship de675fe2-8f44-5a6f-a4ce-fc44129603e6
+	fromColumn: 'A&E'.month_key
+	toColumn: Month.month_key
+
+relationship 7249a9dc-cfb6-53da-8e59-d3ee1a0f96f6
+	fromColumn: 'A&E'.provider_code
+	toColumn: Organisation.Code
+
+relationship 4dc3435c-63db-5609-9897-f7c84611a8bc
+	fromColumn: RTT.month_key
+	toColumn: Month.month_key
+
+relationship 0cc26e3c-1993-51c9-9a63-6136ae72a860
+	fromColumn: RTT.provider_code
+	toColumn: Organisation.Code
+
+relationship e15dcbd9-67d1-50a2-821c-f6d85011aa82
+	fromColumn: 'RTT specialty'.month_key
+	toColumn: Month.month_key
+
+relationship d71c515d-cd90-553e-8240-d2e4cf31637a
+	fromColumn: 'RTT specialty'.provider_code
+	toColumn: Organisation.Code
+
+relationship d6d3ce48-2a40-5a2f-87d9-0b047a5d1eea
+	fromColumn: 'RTT specialty'.treatment_function_code
+	toColumn: Specialty.Code
+
+relationship fcf11e1f-4b58-545c-bf35-26f3b4485223
+	fromColumn: 'RTT England'.month_key
+	toColumn: Month.month_key
+
+relationship 70d6170e-6fec-57a1-95de-953dfc626649
+	fromColumn: 'RTT England'.treatment_function_code
+	toColumn: Specialty.Code
+
+relationship 1c9b0da6-cf1d-5468-8494-0eaf6df6f5f2
+	fromColumn: Organisation.region_code
+	toColumn: Region.region_code
+
+relationship 9f47834d-13c1-561c-b84a-4069d2f3cbc7
+	fromColumn: Forecast.month_key
+	toColumn: Month.month_key

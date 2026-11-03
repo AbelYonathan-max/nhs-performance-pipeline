@@ -1,0 +1,64 @@
+table Targets
+	isHidden
+	lineageTag: 3232d615-65f2-5dd1-bf0e-f9bf7bd97f3c
+
+	column metric
+		dataType: string
+		lineageTag: 106f504e-688f-5b9f-8ab4-4f1a93d501f2
+		summarizeBy: none
+		sourceColumn: metric
+
+		annotation SummarizationSetBy = Automatic
+
+	column financial_year
+		dataType: string
+		lineageTag: 1af08b1c-cd60-535f-be13-60617149ad0c
+		summarizeBy: none
+		sourceColumn: financial_year
+
+		annotation SummarizationSetBy = Automatic
+
+	column target_date
+		dataType: string
+		lineageTag: 92de76fc-feff-5a3e-ae7c-a61cb36280f9
+		summarizeBy: none
+		sourceColumn: target_date
+
+		annotation SummarizationSetBy = Automatic
+
+	column value
+		dataType: double
+		formatString: 0%
+		lineageTag: 3a060066-0b48-51ee-8f4f-cf9450b05bb7
+		summarizeBy: none
+		sourceColumn: value
+
+		annotation SummarizationSetBy = Automatic
+
+	column scope
+		dataType: string
+		lineageTag: 6a6ee1dd-0722-5b1b-966f-614fff3736a4
+		summarizeBy: none
+		sourceColumn: scope
+
+		annotation SummarizationSetBy = Automatic
+
+	column source
+		dataType: string
+		lineageTag: 38603e06-c94f-5f56-9c04-70295c496109
+		summarizeBy: none
+		sourceColumn: source
+
+		annotation SummarizationSetBy = Automatic
+
+	partition Targets = m
+		mode: import
+		source =
+				let
+				    Source = LoadParquet("targets"),
+				    Kept = Table.SelectColumns(Source, {"metric", "financial_year", "target_date", "value", "scope", "source"}),
+				    Typed = Table.TransformColumnTypes(Kept, {{"metric", type text}, {"financial_year", type text}, {"target_date", type text}, {"value", type number}, {"scope", type text}, {"source", type text}})
+				in
+				    Typed
+
+	annotation PBI_ResultType = Table

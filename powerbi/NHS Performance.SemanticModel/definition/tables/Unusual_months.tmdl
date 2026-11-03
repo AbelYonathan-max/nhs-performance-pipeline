@@ -1,0 +1,65 @@
+table 'Unusual months'
+	lineageTag: ca616d0b-8517-5781-a597-7bba9f001567
+
+	column metric
+		dataType: string
+		lineageTag: afc02e62-0461-56d7-970d-810081a8e2cf
+		summarizeBy: none
+		sourceColumn: metric
+
+		annotation SummarizationSetBy = Automatic
+
+	column Code
+		dataType: string
+		lineageTag: 50ced3a8-2b0d-5d46-9b16-353f67bacc6e
+		summarizeBy: none
+		sourceColumn: provider_code
+
+		annotation SummarizationSetBy = Automatic
+
+	column month_key
+		dataType: int64
+		lineageTag: 52907b51-d034-592a-a8f6-f9a48b39036e
+		summarizeBy: none
+		sourceColumn: month_key
+
+		annotation SummarizationSetBy = Automatic
+
+	column Value
+		dataType: double
+		formatString: #,0.000
+		lineageTag: d94c92cf-2fdd-534f-b610-8448e3a233f8
+		summarizeBy: none
+		sourceColumn: value
+
+		annotation SummarizationSetBy = Automatic
+
+	column Expected
+		dataType: double
+		formatString: #,0.000
+		lineageTag: c5f2c128-f62c-5ed1-abbf-1fa268331fe7
+		summarizeBy: none
+		sourceColumn: expected
+
+		annotation SummarizationSetBy = Automatic
+
+	column 'Robust z'
+		dataType: double
+		formatString: 0.0
+		lineageTag: 3b092baf-134a-5a32-901f-20b1d7d134df
+		summarizeBy: none
+		sourceColumn: robust_z
+
+		annotation SummarizationSetBy = Automatic
+
+	partition 'Unusual months' = m
+		mode: import
+		source =
+				let
+				    Source = LoadParquet("anomalies"),
+				    Kept = Table.SelectColumns(Source, {"metric", "provider_code", "month_key", "value", "expected", "robust_z"}),
+				    Typed = Table.TransformColumnTypes(Kept, {{"metric", type text}, {"provider_code", type text}, {"month_key", Int64.Type}, {"value", type number}, {"expected", type number}, {"robust_z", type number}})
+				in
+				    Typed
+
+	annotation PBI_ResultType = Table

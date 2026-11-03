@@ -1,0 +1,75 @@
+/// NHS trusts and other organisations that report A&E or RTT data.
+table Organisation
+	lineageTag: 20c4bdfd-928c-5c0b-a8ba-7296bb1d4059
+
+	column Code
+		dataType: string
+		lineageTag: 37e9383e-55f2-5f47-ac4a-eaa3972be54c
+		summarizeBy: none
+		sourceColumn: provider_code
+
+		annotation SummarizationSetBy = Automatic
+
+	column Organisation
+		dataType: string
+		lineageTag: 10821cd2-469e-5c72-985f-797b72ad4902
+		summarizeBy: none
+		sourceColumn: provider_name
+
+		annotation SummarizationSetBy = Automatic
+
+	column region_code
+		dataType: string
+		isHidden
+		lineageTag: 078c9f9e-02c3-5b20-a645-befd989d0ee0
+		summarizeBy: none
+		sourceColumn: region_code
+
+		annotation SummarizationSetBy = Automatic
+
+	column Sector
+		dataType: string
+		lineageTag: dbdab5f6-e860-55ca-b317-db66bff2d4e2
+		summarizeBy: none
+		sourceColumn: sector
+
+		annotation SummarizationSetBy = Automatic
+
+	column 'Major A&E'
+		dataType: string
+		lineageTag: bee27956-0ef0-57d5-92e6-34433800f78a
+		summarizeBy: none
+		sourceColumn: major_ae
+
+		annotation SummarizationSetBy = Automatic
+
+	column 'In A&E data'
+		dataType: int64
+		isHidden
+		lineageTag: bc51d38d-5b81-5be4-b15e-044be48f6bac
+		summarizeBy: none
+		sourceColumn: in_ae
+
+		annotation SummarizationSetBy = Automatic
+
+	column 'In RTT data'
+		dataType: int64
+		isHidden
+		lineageTag: 2d8825e5-77fc-5546-b42a-0bb94b661ecb
+		summarizeBy: none
+		sourceColumn: in_rtt
+
+		annotation SummarizationSetBy = Automatic
+
+	partition Organisation = m
+		mode: import
+		source =
+				let
+				    Source = LoadParquet("dim_provider"),
+				    Flag = Table.AddColumn(Source, "major_ae", each if [has_type1_ae] = 1 then "Yes" else "No", type text),
+				    Kept = Table.SelectColumns(Flag, {"provider_code", "provider_name", "region_code", "sector", "major_ae", "in_ae", "in_rtt"}),
+				    Typed = Table.TransformColumnTypes(Kept, {{"provider_code", type text}, {"provider_name", type text}, {"region_code", type text}, {"sector", type text}, {"major_ae", type text}, {"in_ae", Int64.Type}, {"in_rtt", Int64.Type}})
+				in
+				    Typed
+
+	annotation PBI_ResultType = Table

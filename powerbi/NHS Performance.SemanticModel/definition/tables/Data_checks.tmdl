@@ -1,0 +1,63 @@
+table 'Data checks'
+	lineageTag: 9e3430b0-50e7-5717-8da0-f25946f9bbad
+
+	column 'Run at'
+		dataType: string
+		lineageTag: c5bf4a9f-c9cb-59fc-90f6-1cae0c4e6a71
+		summarizeBy: none
+		sourceColumn: run_at
+
+		annotation SummarizationSetBy = Automatic
+
+	column Dataset
+		dataType: string
+		lineageTag: 922fdfea-5a98-5063-a0ca-7b5186c340a9
+		summarizeBy: none
+		sourceColumn: dataset
+
+		annotation SummarizationSetBy = Automatic
+
+	column Check
+		dataType: string
+		lineageTag: 9d3dab50-cb1f-59c5-b076-8b88b8134e77
+		summarizeBy: none
+		sourceColumn: check_name
+
+		annotation SummarizationSetBy = Automatic
+
+	column Severity
+		dataType: string
+		lineageTag: a5166cdd-3032-5bef-9435-ba09920eb9c8
+		summarizeBy: none
+		sourceColumn: severity
+
+		annotation SummarizationSetBy = Automatic
+
+	column passed
+		dataType: int64
+		isHidden
+		lineageTag: e1256f9f-7797-512b-97b5-3e308a2340a2
+		summarizeBy: none
+		sourceColumn: passed
+
+		annotation SummarizationSetBy = Automatic
+
+	column Detail
+		dataType: string
+		lineageTag: 3a6a75aa-6832-5420-a819-90bafb5b595f
+		summarizeBy: none
+		sourceColumn: detail
+
+		annotation SummarizationSetBy = Automatic
+
+	partition 'Data checks' = m
+		mode: import
+		source =
+				let
+				    Source = LoadParquet("dq_checks"),
+				    Kept = Table.SelectColumns(Source, {"run_at", "dataset", "check_name", "severity", "passed", "detail"}),
+				    Typed = Table.TransformColumnTypes(Kept, {{"run_at", type text}, {"dataset", type text}, {"check_name", type text}, {"severity", type text}, {"passed", Int64.Type}, {"detail", type text}})
+				in
+				    Typed
+
+	annotation PBI_ResultType = Table

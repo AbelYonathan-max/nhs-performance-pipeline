@@ -1,0 +1,31 @@
+table Region
+	lineageTag: 4d370586-0a27-5304-a748-4ed392545534
+
+	column region_code
+		dataType: string
+		isHidden
+		lineageTag: 1020d8ba-3539-5bd9-8e40-edd13bf23ffe
+		summarizeBy: none
+		sourceColumn: region_code
+
+		annotation SummarizationSetBy = Automatic
+
+	column Region
+		dataType: string
+		lineageTag: f20085ee-c1ab-5c73-bb80-5cc07f1b5a1a
+		summarizeBy: none
+		sourceColumn: region_name
+
+		annotation SummarizationSetBy = Automatic
+
+	partition Region = m
+		mode: import
+		source =
+				let
+				    Source = LoadParquet("dim_region"),
+				    Kept = Table.SelectColumns(Source, {"region_code", "region_name"}),
+				    Typed = Table.TransformColumnTypes(Kept, {{"region_code", type text}, {"region_name", type text}})
+				in
+				    Typed
+
+	annotation PBI_ResultType = Table

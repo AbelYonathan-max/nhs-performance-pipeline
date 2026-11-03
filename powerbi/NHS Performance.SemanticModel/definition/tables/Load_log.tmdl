@@ -1,0 +1,64 @@
+table 'Load log'
+	lineageTag: 6cdb160d-493d-530a-a9c5-4bdd43897801
+
+	column Dataset
+		dataType: string
+		lineageTag: 76d1937b-5e2e-5e77-ac9e-4cd2d30c7cd5
+		summarizeBy: none
+		sourceColumn: dataset
+
+		annotation SummarizationSetBy = Automatic
+
+	column Period
+		dataType: string
+		lineageTag: 85f232fd-57c8-5406-b3cc-77206aecef52
+		summarizeBy: none
+		sourceColumn: period
+
+		annotation SummarizationSetBy = Automatic
+
+	column 'Source URL'
+		dataType: string
+		lineageTag: 45f19b0e-9159-5f1b-8331-f6bee9868d3b
+		summarizeBy: none
+		sourceColumn: source_url
+
+		annotation SummarizationSetBy = Automatic
+
+	column 'SHA-256'
+		dataType: string
+		lineageTag: c2e917ae-a612-5470-b503-a3c5e9c634f0
+		summarizeBy: none
+		sourceColumn: sha256
+
+		annotation SummarizationSetBy = Automatic
+
+	column Rows
+		dataType: int64
+		formatString: #,0
+		lineageTag: a9a46829-c5b4-50a9-bfaf-61181f337fd3
+		summarizeBy: none
+		sourceColumn: rows_loaded
+
+		annotation SummarizationSetBy = Automatic
+
+	column loaded_at
+		dataType: string
+		isHidden
+		lineageTag: 0eabf12b-20dd-5404-ae63-3607de9441ec
+		summarizeBy: none
+		sourceColumn: loaded_at
+
+		annotation SummarizationSetBy = Automatic
+
+	partition 'Load log' = m
+		mode: import
+		source =
+				let
+				    Source = LoadParquet("load_log"),
+				    Kept = Table.SelectColumns(Source, {"dataset", "period", "source_url", "sha256", "rows_loaded", "loaded_at"}),
+				    Typed = Table.TransformColumnTypes(Kept, {{"dataset", type text}, {"period", type text}, {"source_url", type text}, {"sha256", type text}, {"rows_loaded", Int64.Type}, {"loaded_at", type text}})
+				in
+				    Typed
+
+	annotation PBI_ResultType = Table

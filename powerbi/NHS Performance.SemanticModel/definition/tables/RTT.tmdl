@@ -1,0 +1,133 @@
+/// Month-end RTT waiting list by organisation (all specialties).
+table RTT
+	lineageTag: 3e61d11a-2fba-5830-9f28-dd9cdde22dcd
+
+	column month_key
+		dataType: int64
+		isHidden
+		lineageTag: a655c32e-95ca-53be-80bf-67d270405768
+		summarizeBy: none
+		sourceColumn: month_key
+
+		annotation SummarizationSetBy = Automatic
+
+	column provider_code
+		dataType: string
+		isHidden
+		lineageTag: 685c440a-8cb4-5a7c-b00d-ea55b0822911
+		summarizeBy: none
+		sourceColumn: provider_code
+
+		annotation SummarizationSetBy = Automatic
+
+	column waiting_list
+		dataType: double
+		isHidden
+		formatString: #,0
+		lineageTag: fa5f0ab2-567b-5e90-8e1c-e65f636cd733
+		summarizeBy: sum
+		sourceColumn: waiting_list
+
+		annotation SummarizationSetBy = Automatic
+
+	column within_18
+		dataType: double
+		isHidden
+		formatString: #,0
+		lineageTag: 9a9ad177-4061-5418-a278-b87922f71bea
+		summarizeBy: sum
+		sourceColumn: within_18
+
+		annotation SummarizationSetBy = Automatic
+
+	column over_52
+		dataType: double
+		isHidden
+		formatString: #,0
+		lineageTag: de470835-2760-59ab-8df2-a07c03415d42
+		summarizeBy: sum
+		sourceColumn: over_52
+
+		annotation SummarizationSetBy = Automatic
+
+	column over_65
+		dataType: double
+		isHidden
+		formatString: #,0
+		lineageTag: c3864116-9459-53f1-9911-3df7607d6226
+		summarizeBy: sum
+		sourceColumn: over_65
+
+		annotation SummarizationSetBy = Automatic
+
+	column over_78
+		dataType: double
+		isHidden
+		formatString: #,0
+		lineageTag: 003e3fca-b465-529e-beeb-ed435a2beb9b
+		summarizeBy: sum
+		sourceColumn: over_78
+
+		annotation SummarizationSetBy = Automatic
+
+	column over_104
+		dataType: double
+		isHidden
+		formatString: #,0
+		lineageTag: b96f03c9-381f-5f08-aa77-cb0b268feef3
+		summarizeBy: sum
+		sourceColumn: over_104
+
+		annotation SummarizationSetBy = Automatic
+
+	column median_weeks
+		dataType: double
+		isHidden
+		formatString: 0.0
+		lineageTag: 7ac7dce1-4213-50f9-be06-3b6c531992a1
+		summarizeBy: sum
+		sourceColumn: median_weeks
+
+		annotation SummarizationSetBy = Automatic
+
+	column p92_weeks
+		dataType: double
+		isHidden
+		formatString: 0.0
+		lineageTag: 9c4cdd1e-4950-5339-bd66-eb36b9ed013b
+		summarizeBy: sum
+		sourceColumn: p92_weeks
+
+		annotation SummarizationSetBy = Automatic
+
+	column clock_stops
+		dataType: double
+		isHidden
+		formatString: #,0
+		lineageTag: ae78fe44-a03a-5732-a729-3d59a97bb1d0
+		summarizeBy: sum
+		sourceColumn: clock_stops
+
+		annotation SummarizationSetBy = Automatic
+
+	column clock_starts
+		dataType: double
+		isHidden
+		formatString: #,0
+		lineageTag: db2c7d6d-0242-5ecf-acc6-c4c798a04a47
+		summarizeBy: sum
+		sourceColumn: clock_starts
+
+		annotation SummarizationSetBy = Automatic
+
+	partition RTT = m
+		mode: import
+		source =
+				let
+				    Source = LoadParquet("fact_rtt_provider"),
+				    Kept = Table.SelectColumns(Source, {"month_key", "provider_code", "waiting_list", "within_18", "over_52", "over_65", "over_78", "over_104", "median_weeks", "p92_weeks", "clock_stops", "clock_starts"}),
+				    Typed = Table.TransformColumnTypes(Kept, {{"month_key", Int64.Type}, {"provider_code", type text}, {"waiting_list", type number}, {"within_18", type number}, {"over_52", type number}, {"over_65", type number}, {"over_78", type number}, {"over_104", type number}, {"median_weeks", type number}, {"p92_weeks", type number}, {"clock_stops", type number}, {"clock_starts", type number}})
+				in
+				    Typed
+
+	annotation PBI_ResultType = Table

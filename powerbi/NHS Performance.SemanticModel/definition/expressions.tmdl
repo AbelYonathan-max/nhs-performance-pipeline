@@ -1,0 +1,18 @@
+/// Folder URL the pipeline publishes Parquet files to (the repo's data branch).
+expression DataRoot = "https://raw.githubusercontent.com/AbelYonathan-max/nhs-performance-pipeline/data/" meta [IsParameterQuery=true, Type="Text", IsParameterQueryRequired=true]
+	lineageTag: bc7c311e-84e3-5da3-b15e-e8566ef904b6
+
+	annotation PBI_ResultType = Text
+
+/// Read one published Parquet file. RelativePath keeps the source static so the
+/// Power BI service can refresh it on a schedule without a gateway.
+expression LoadParquet =
+		(name as text) as table =>
+		let
+		    Bytes = Web.Contents(DataRoot, [RelativePath = name & ".parquet"]),
+		    Table = Parquet.Document(Bytes)
+		in
+		    Table
+	lineageTag: 5aa0c720-a832-58ea-9506-eb7bff08a1cb
+
+	annotation PBI_ResultType = Function

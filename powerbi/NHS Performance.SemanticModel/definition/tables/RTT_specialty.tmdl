@@ -1,0 +1,72 @@
+/// Month-end RTT waiting list by organisation and specialty.
+table 'RTT specialty'
+	lineageTag: e3675853-d3c7-539d-9f73-7e78478e9daf
+
+	column month_key
+		dataType: int64
+		isHidden
+		lineageTag: 91338536-514e-5370-888c-3ee44acec991
+		summarizeBy: none
+		sourceColumn: month_key
+
+		annotation SummarizationSetBy = Automatic
+
+	column provider_code
+		dataType: string
+		isHidden
+		lineageTag: 3e86273b-966b-59f0-90dc-8a526bcca786
+		summarizeBy: none
+		sourceColumn: provider_code
+
+		annotation SummarizationSetBy = Automatic
+
+	column treatment_function_code
+		dataType: string
+		isHidden
+		lineageTag: fd2c7553-36a7-50ad-bb36-28f834ccc813
+		summarizeBy: none
+		sourceColumn: treatment_function_code
+
+		annotation SummarizationSetBy = Automatic
+
+	column waiting_list
+		dataType: double
+		isHidden
+		formatString: #,0
+		lineageTag: 58bfbfbd-8471-5dcb-aeac-386d62addd1e
+		summarizeBy: sum
+		sourceColumn: waiting_list
+
+		annotation SummarizationSetBy = Automatic
+
+	column within_18
+		dataType: double
+		isHidden
+		formatString: #,0
+		lineageTag: 765d913b-c70c-5c45-bbdb-8dbbfe9472e5
+		summarizeBy: sum
+		sourceColumn: within_18
+
+		annotation SummarizationSetBy = Automatic
+
+	column over_52
+		dataType: double
+		isHidden
+		formatString: #,0
+		lineageTag: 46f79801-d3bd-5399-aa10-1394b660db35
+		summarizeBy: sum
+		sourceColumn: over_52
+
+		annotation SummarizationSetBy = Automatic
+
+	partition 'RTT specialty' = m
+		mode: import
+		source =
+				let
+				    Source = LoadParquet("fact_rtt_specialty"),
+				    Kept = Table.SelectColumns(Source, {"month_key", "provider_code", "treatment_function_code", "waiting_list", "within_18", "over_52"}),
+				    Typed = Table.TransformColumnTypes(Kept, {{"month_key", Int64.Type}, {"provider_code", type text}, {"treatment_function_code", type text}, {"waiting_list", type number}, {"within_18", type number}, {"over_52", type number}})
+				in
+				    Typed
+
+	annotation PBI_ResultType = Table

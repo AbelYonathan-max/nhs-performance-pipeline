@@ -1,0 +1,316 @@
+/// All report measures, grouped in folders.
+table Measures
+	lineageTag: 41181fbe-6634-5cd9-aea1-ff555378b456
+
+	measure Attendances = SUM ( 'A&E'[attendances] )
+		formatString: #,0
+		displayFolder: A&E
+		lineageTag: fb8576ec-11b1-5fd5-80c8-f1e4b6699934
+
+	measure 'Within 4 hours' = SUM ( 'A&E'[within_4hr] )
+		formatString: #,0
+		displayFolder: A&E
+		lineageTag: d4cb498a-be49-5633-94aa-6c7620d0e356
+
+	/// Share of all A&E attendances admitted, transferred or discharged within 4 hours.
+	measure 'A&E 4hr %' = DIVIDE ( [Within 4 hours], [Attendances] )
+		formatString: 0.0%
+		displayFolder: A&E
+		lineageTag: 1fa2d418-1d39-5df3-83c2-8e89d5c66edb
+
+	/// As A&E 4hr % but major emergency departments (type 1) only.
+	measure 'Type 1 4hr %' = DIVIDE ( SUM ( 'A&E'[attendances_type1] ) - SUM ( 'A&E'[over_4hr_type1] ), SUM ( 'A&E'[attendances_type1] ) )
+		formatString: 0.0%
+		displayFolder: A&E
+		lineageTag: b6b8a3ca-8b6f-5358-a809-428d95a1b3b0
+
+	/// Patients who waited over 12 hours from decision to admit to admission.
+	measure '12hr trolley waits' = SUM ( 'A&E'[dta_12_plus] )
+		formatString: #,0
+		displayFolder: A&E
+		lineageTag: c3026632-e895-5230-86ab-bdaadb0503d0
+
+	measure 'Emergency admissions' = SUM ( 'A&E'[emergency_admissions_total] )
+		formatString: #,0
+		displayFolder: A&E
+		lineageTag: d38c3c70-ca25-5ff1-9131-50ee8b250764
+
+	/// National 4-hour ambition for the financial year of the month.
+	measure 'A&E target' =
+			VAR fy = MAX ( 'Month'[Financial year] )
+			RETURN LOOKUPVALUE ( Targets[value], Targets[metric], "ae_4hr_pct", Targets[financial_year], fy )
+		formatString: 0%
+		displayFolder: A&E
+		lineageTag: 9ac6640b-396e-51b4-8e21-0e5c4b9f3fcb
+
+	measure 'A&E gap to target' = IF ( NOT ISBLANK ( [A&E 4hr %] ), [A&E 4hr %] - [A&E target] )
+		formatString: +0.0%;-0.0%;0.0%
+		displayFolder: A&E
+		lineageTag: 48a9353a-8614-5f17-8450-43e72ddc5fec
+
+	measure 'Latest A&E month' =
+			VAR k = CALCULATE ( MAX ( 'A&E'[month_key] ) )
+			RETURN FORMAT ( DATE ( INT ( k / 100 ), MOD ( k, 100 ), 1 ), "mmm yyyy" )
+		displayFolder: A&E
+		lineageTag: 0e820c7d-477c-53a2-8f4e-b667cdc6fb1b
+
+	measure 'A&E 4hr % (latest)' =
+			VAR k = CALCULATE ( MAX ( 'A&E'[month_key] ) )
+			RETURN CALCULATE ( [A&E 4hr %], REMOVEFILTERS ( 'Month' ), 'Month'[month_key] = k )
+		formatString: 0.0%
+		displayFolder: A&E
+		lineageTag: 05b15cdc-24ce-53dc-bb9a-4faf4fcd93a2
+
+	measure 'A&E 4hr % (year before)' =
+			VAR k = CALCULATE ( MAX ( 'A&E'[month_key] ) )
+			RETURN CALCULATE ( [A&E 4hr %], REMOVEFILTERS ( 'Month' ), 'Month'[month_key] = k - 100 )
+		formatString: 0.0%
+		displayFolder: A&E
+		lineageTag: aa3d2f3e-4ccb-5652-ae54-d1b826dcf50c
+
+	measure 'A&E 4hr change on year' = IF ( NOT ISBLANK ( [A&E 4hr % (year before)] ), [A&E 4hr % (latest)] - [A&E 4hr % (year before)] )
+		formatString: +0.0%;-0.0%;0.0%
+		displayFolder: A&E
+		lineageTag: 0df4a81a-7630-5263-af2a-4afb4afbf189
+
+	measure 'Attendances (latest)' =
+			VAR k = CALCULATE ( MAX ( 'A&E'[month_key] ) )
+			RETURN CALCULATE ( [Attendances], REMOVEFILTERS ( 'Month' ), 'Month'[month_key] = k )
+		formatString: #,0
+		displayFolder: A&E
+		lineageTag: 714d4179-2775-5f9b-8b1b-e182689f3ad1
+
+	measure '12hr trolley waits (latest)' =
+			VAR k = CALCULATE ( MAX ( 'A&E'[month_key] ) )
+			RETURN CALCULATE ( [12hr trolley waits], REMOVEFILTERS ( 'Month' ), 'Month'[month_key] = k )
+		formatString: #,0
+		displayFolder: A&E
+		lineageTag: 1ab1d8df-3330-5a87-b060-ca3d5d805f05
+
+	measure 'A&E target (latest)' =
+			VAR k = CALCULATE ( MAX ( 'A&E'[month_key] ) )
+			VAR fy = CALCULATE ( MAX ( 'Month'[Financial year] ), REMOVEFILTERS ( 'Month' ), 'Month'[month_key] = k )
+			RETURN LOOKUPVALUE ( Targets[value], Targets[metric], "ae_4hr_pct", Targets[financial_year], fy )
+		formatString: 0%
+		displayFolder: A&E
+		lineageTag: cec31932-ab9f-59e6-9313-66b22f972459
+
+	measure 'A&E rank' =
+			IF ( HASONEVALUE ( Organisation[Code] ) && NOT ISBLANK ( [A&E 4hr % (latest)] ),
+			    RANKX ( FILTER ( ALLSELECTED ( Organisation ), Organisation[Major A&E] = "Yes" ), [A&E 4hr % (latest)], , DESC ) )
+		formatString: 0
+		displayFolder: A&E
+		lineageTag: 7e034f6a-8ffd-597a-8d06-6c4228ad533b
+
+	measure 'Trusts meeting 4hr target' =
+			VAR t = [A&E target (latest)]
+			RETURN COUNTROWS ( FILTER ( VALUES ( Organisation[Code] ), [A&E 4hr % (latest)] >= t && CALCULATE ( MAX ( Organisation[Major A&E] ) ) = "Yes" ) ) + 0
+		formatString: 0
+		displayFolder: A&E
+		lineageTag: 23773f70-076d-56a3-96df-cd08e7e612e2
+
+	/// Patients waiting to start consultant-led treatment at month end (latest month in view).
+	measure 'Waiting list' =
+			VAR k = CALCULATE ( MAX ( RTT[month_key] ) )
+			RETURN CALCULATE ( SUM ( RTT[waiting_list] ), RTT[month_key] = k )
+		formatString: #,0
+		displayFolder: RTT
+		lineageTag: b764b310-4ea0-5d77-ac85-e3fd903daacf
+
+	measure 'Within 18 weeks' =
+			VAR k = CALCULATE ( MAX ( RTT[month_key] ) )
+			RETURN CALCULATE ( SUM ( RTT[within_18] ), RTT[month_key] = k )
+		formatString: #,0
+		displayFolder: RTT
+		lineageTag: 56949c2c-a9e8-5840-b345-6ef5924ca601
+
+	measure 'Over 52 weeks' =
+			VAR k = CALCULATE ( MAX ( RTT[month_key] ) )
+			RETURN CALCULATE ( SUM ( RTT[over_52] ), RTT[month_key] = k )
+		formatString: #,0
+		displayFolder: RTT
+		lineageTag: b1b5c8d8-f34f-5427-bb73-2815d9bc85ab
+
+	measure 'Over 65 weeks' =
+			VAR k = CALCULATE ( MAX ( RTT[month_key] ) )
+			RETURN CALCULATE ( SUM ( RTT[over_65] ), RTT[month_key] = k )
+		formatString: #,0
+		displayFolder: RTT
+		lineageTag: b0fcb0ae-8cb4-5457-9784-cb51e369202e
+
+	measure 'Over 78 weeks' =
+			VAR k = CALCULATE ( MAX ( RTT[month_key] ) )
+			RETURN CALCULATE ( SUM ( RTT[over_78] ), RTT[month_key] = k )
+		formatString: #,0
+		displayFolder: RTT
+		lineageTag: 3dfa79a2-6361-5799-b110-6c8d07010a18
+
+	/// Share of the waiting list waiting under 18 weeks.
+	measure 'RTT 18wk %' = DIVIDE ( [Within 18 weeks], [Waiting list] )
+		formatString: 0.0%
+		displayFolder: RTT
+		lineageTag: f2043b05-a68f-5ffd-9aa0-80489b164856
+
+	measure 'Share over 52 weeks' = DIVIDE ( [Over 52 weeks], [Waiting list] )
+		formatString: 0.00%
+		displayFolder: RTT
+		lineageTag: 59be1dca-72ec-574a-8b3c-1ae44db5b72e
+
+	measure 'Treated (clock stops)' = SUM ( RTT[clock_stops] )
+		formatString: #,0
+		displayFolder: RTT
+		lineageTag: 1abf6609-ad4f-5e6d-83d8-36474e249a69
+
+	measure 'New referrals (clock starts)' = SUM ( RTT[clock_starts] )
+		formatString: #,0
+		displayFolder: RTT
+		lineageTag: d96d3a9c-70a5-545d-acce-c1d17c856f34
+
+	/// Median wait in weeks. England figures come from summed weekly bands; one organisation at a time otherwise.
+	measure 'Median wait (weeks)' =
+			VAR k = CALCULATE ( MAX ( RTT[month_key] ) )
+			VAR tf = SELECTEDVALUE ( Specialty[Code], "C_999" )
+			RETURN
+			    IF (
+			        NOT ISFILTERED ( Organisation ) && NOT ISFILTERED ( Region ),
+			        CALCULATE ( MAX ( 'RTT England'[median_weeks] ), 'RTT England'[month_key] = k,
+			            'RTT England'[treatment_function_code] = tf ),
+			        IF ( HASONEVALUE ( Organisation[Code] ) && tf = "C_999",
+			            CALCULATE ( MAX ( RTT[median_weeks] ), RTT[month_key] = k ) )
+			    )
+		formatString: 0.0
+		displayFolder: RTT
+		lineageTag: da9df27e-5425-5d98-928e-8ac2aa26bf55
+
+	measure 'RTT target' =
+			VAR fy = MAX ( 'Month'[Financial year] )
+			RETURN LOOKUPVALUE ( Targets[value], Targets[metric], "rtt_18wk_pct", Targets[financial_year], fy )
+		formatString: 0%
+		displayFolder: RTT
+		lineageTag: c0a4f404-1390-581e-babd-6b331ab59e7e
+
+	measure 'RTT gap to target' = IF ( NOT ISBLANK ( [RTT 18wk %] ), [RTT 18wk %] - [RTT target] )
+		formatString: +0.0%;-0.0%;0.0%
+		displayFolder: RTT
+		lineageTag: e6174402-6b45-57bf-b17b-527a392958bb
+
+	measure 'Latest RTT month' =
+			VAR k = CALCULATE ( MAX ( RTT[month_key] ) )
+			RETURN FORMAT ( DATE ( INT ( k / 100 ), MOD ( k, 100 ), 1 ), "mmm yyyy" )
+		displayFolder: RTT
+		lineageTag: 0b614e0d-cd99-5390-ab9f-4226237c41be
+
+	measure 'RTT 18wk % (year before)' =
+			VAR k = CALCULATE ( MAX ( RTT[month_key] ) )
+			RETURN CALCULATE ( [RTT 18wk %], REMOVEFILTERS ( 'Month' ), 'Month'[month_key] = k - 100 )
+		formatString: 0.0%
+		displayFolder: RTT
+		lineageTag: a829fc12-377a-57ac-9ce9-bdc8fd88280e
+
+	measure 'RTT 18wk change on year' = IF ( NOT ISBLANK ( [RTT 18wk % (year before)] ), [RTT 18wk %] - [RTT 18wk % (year before)] )
+		formatString: +0.0%;-0.0%;0.0%
+		displayFolder: RTT
+		lineageTag: 39e0300e-1da9-5e7d-9ad7-ff78b9d54bc9
+
+	measure 'Waiting list change on year' =
+			VAR k = CALCULATE ( MAX ( RTT[month_key] ) )
+			VAR before = CALCULATE ( SUM ( RTT[waiting_list] ), REMOVEFILTERS ( 'Month' ), RTT[month_key] = k - 100 )
+			RETURN IF ( NOT ISBLANK ( before ), [Waiting list] - before )
+		formatString: +#,0;-#,0;0
+		displayFolder: RTT
+		lineageTag: 681dbcd6-55d3-57dd-804c-0dbdb5384d59
+
+	measure 'RTT target (latest)' =
+			VAR k = CALCULATE ( MAX ( RTT[month_key] ) )
+			VAR fy = CALCULATE ( MAX ( 'Month'[Financial year] ), REMOVEFILTERS ( 'Month' ), 'Month'[month_key] = k )
+			RETURN LOOKUPVALUE ( Targets[value], Targets[metric], "rtt_18wk_pct", Targets[financial_year], fy )
+		formatString: 0%
+		displayFolder: RTT
+		lineageTag: ef82c20e-115c-56b1-be0c-25a8cea3ec61
+
+	measure 'Specialty waiting list' =
+			VAR k = CALCULATE ( MAX ( 'RTT specialty'[month_key] ) )
+			RETURN CALCULATE ( SUM ( 'RTT specialty'[waiting_list] ), 'RTT specialty'[month_key] = k )
+		formatString: #,0
+		displayFolder: RTT
+		lineageTag: d7b6c17a-8b04-5677-ba91-e6a2da84a7fb
+
+	measure 'Specialty over 52 weeks' =
+			VAR k = CALCULATE ( MAX ( 'RTT specialty'[month_key] ) )
+			RETURN CALCULATE ( SUM ( 'RTT specialty'[over_52] ), 'RTT specialty'[month_key] = k )
+		formatString: #,0
+		displayFolder: RTT
+		lineageTag: b3e44565-6a26-5a59-b8f0-229a926d8bed
+
+	measure 'Specialty 18wk %' =
+			VAR k = CALCULATE ( MAX ( 'RTT specialty'[month_key] ) )
+			RETURN DIVIDE ( CALCULATE ( SUM ( 'RTT specialty'[within_18] ), 'RTT specialty'[month_key] = k ), [Specialty waiting list] )
+		formatString: 0.0%
+		displayFolder: RTT
+		lineageTag: f4ef559e-52f7-5d97-874d-a2403ec568cf
+
+	measure 'RTT rank' =
+			IF ( HASONEVALUE ( Organisation[Code] ) && NOT ISBLANK ( [RTT 18wk %] ),
+			    RANKX ( FILTER ( ALLSELECTED ( Organisation ), Organisation[Sector] = "NHS trust" && [Waiting list] >= 1000 ), [RTT 18wk %], , DESC ) )
+		formatString: 0
+		displayFolder: RTT
+		lineageTag: 6cb21e1c-a171-5a66-a9a3-ff5cfffb7ad8
+
+	measure Actual = CALCULATE ( SUM ( Forecast[value] ), Forecast[kind] = "actual" )
+		displayFolder: Forecast
+		lineageTag: d037d05c-16d1-5690-bdaa-dbf0815f59da
+
+	measure Forecast = CALCULATE ( SUM ( Forecast[value] ), Forecast[kind] = "forecast" )
+		displayFolder: Forecast
+		lineageTag: 0c749461-f8fb-5af5-b824-0e7fa1bd18aa
+
+	measure 'Forecast low (80%)' = CALCULATE ( SUM ( Forecast[lower_80] ), Forecast[kind] = "forecast" )
+		displayFolder: Forecast
+		lineageTag: bf171be7-dd92-5208-9d47-d5fa891f539e
+
+	measure 'Forecast high (80%)' = CALCULATE ( SUM ( Forecast[upper_80] ), Forecast[kind] = "forecast" )
+		displayFolder: Forecast
+		lineageTag: 429d5e1a-fa3b-5068-896e-be1528057e1d
+
+	measure 'Checks passed' = CALCULATE ( COUNTROWS ( 'Data checks' ), 'Data checks'[passed] = 1 ) + 0
+		formatString: 0
+		displayFolder: Data quality
+		lineageTag: 040a34e3-6267-5ae3-8b08-ba3f059c551b
+
+	measure 'Checks run' = COUNTROWS ( 'Data checks' )
+		formatString: 0
+		displayFolder: Data quality
+		lineageTag: d624d744-f015-5491-8a72-1d9eab7ab680
+
+	measure 'Unusual months' = COUNTROWS ( 'Unusual months' ) + 0
+		formatString: 0
+		displayFolder: Data quality
+		lineageTag: 1a87264d-74f3-519e-b508-6742890dd5ba
+
+	measure 'Source files' = COUNTROWS ( 'Load log' )
+		formatString: 0
+		displayFolder: Data quality
+		lineageTag: 37f2643b-6d07-5dbe-af3e-ad38ed886de3
+
+	measure 'Last loaded' = FORMAT ( MAX ( 'Load log'[loaded_at] ), "d mmm yyyy" )
+		displayFolder: Data quality
+		lineageTag: c8be5b1c-2934-5c7f-81ab-34e8ede317b2
+
+	column Placeholder
+		dataType: string
+		isHidden
+		lineageTag: 68de74af-312a-5882-8805-1ae264624d16
+		summarizeBy: none
+		sourceColumn: Placeholder
+
+		annotation SummarizationSetBy = Automatic
+
+	partition Measures = m
+		mode: import
+		source =
+				let
+				    Source = #table(type table [Placeholder = text], {})
+				in
+				    Source
+
+	annotation PBI_ResultType = Table

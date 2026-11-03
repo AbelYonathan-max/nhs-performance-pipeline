@@ -1,5 +1,9 @@
 """Six-month forecasts, backtests and anomaly flags with scikit-learn.
 
+Three methods are scored in the backtest: the gradient boosting model, "same
+as last month" and "same as this month last year". Each metric's published
+forecast uses whichever scored best, and the scores are published too.
+
 One gradient boosting model per metric is trained across every provider at
 once (a "global" model). It predicts next month's change rather than the
 level, so a small trust and England can share one model. Forecasts are made
@@ -142,12 +146,25 @@ def backtest(metric: Metric, series: dict[str, pd.Series]):
          "mae": float(np.mean(np.abs(e))), "n": len(e)}
         for (name, h), e in sorted(errors.items())
     ]
+    scores = pd.DataFrame(rows)
+    mean = scores.groupby("model")["mae"].mean()
+    chosen = str(mean.idxmin())
+    scores["chosen"] = (scores["model"] == chosen).astype(int)
     bands = {
-        h: (float(np.quantile(errors[("gbm", h)], 0.1)), float(np.quantile(errors[("gbm", h)], 0.9)))
+        h: (float(np.quantile(errors[(chosen, h)], 0.1)),
+            float(np.quantile(errors[(chosen, h)], 0.9)))
         for h in range(1, HORIZON + 1)
-        if ("gbm", h) in errors
+        if (chosen, h) in errors
     }
-    return pd.DataFrame(rows), bands
+    return scores, bands, chosen
+
+
+def predict(metric: Metric, chosen: str, model, s: pd.Series) -> list[float]:
+    if chosen == "gbm":
+        return roll_forward(metric, model, s, HORIZON)
+    if chosen == "seasonal_naive":
+        return [seasonal_naive(s, h) for h in range(1, HORIZON + 1)]
+    return [float(s.iloc[-1])] * HORIZON
 
 
 def band(metric: Metric, value: float, err: tuple[float, float]) -> tuple[float, float]:
@@ -212,14 +229,12 @@ def run(inputs: dict[str, pd.DataFrame]) -> tuple[pd.DataFrame, pd.DataFrame, pd
         if not series:
             log.warning("no series long enough for %s", key)
             continue
-        scores, bands = backtest(metric, series)
+        scores, bands, chosen = backtest(metric, series)
         backtests.append(scores)
-        gbm = scores[scores.model == "gbm"].mae.mean()
-        naive = scores[scores.model == "seasonal_naive"].mae.mean()
-        last = scores[scores.model == "last_value"].mae.mean()
-        log.info("%s: %d series, mean abs error gbm %.4f, last value %.4f, seasonal naive %.4f",
-                 key, len(series), gbm, last, naive)
-        model = fit(metric, series)
+        means = scores.groupby("model")["mae"].mean().round(4).to_dict()
+        log.info("%s: %d series, backtest mean abs error %s -> using %s",
+                 key, len(series), means, chosen)
+        model = fit(metric, series) if chosen == "gbm" else None
         latest = max(s.index[-1] for s in series.values())
         for code, s in series.items():
             sid = f"{key}|{code}"
@@ -228,7 +243,7 @@ def run(inputs: dict[str, pd.DataFrame]) -> tuple[pd.DataFrame, pd.DataFrame, pd
                                   float(value), None, None))
             if s.index[-1] != latest:
                 continue  # stopped reporting; don't forecast it
-            for h, value in enumerate(roll_forward(metric, model, s, HORIZON), start=1):
+            for h, value in enumerate(predict(metric, chosen, model, s), start=1):
                 lo, hi = band(metric, value, bands.get(h, (0.0, 0.0)))
                 when = s.index[-1] + h
                 forecasts.append((sid, key, code, int(when.strftime("%Y%m")), "forecast",

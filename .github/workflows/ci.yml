@@ -1,0 +1,58 @@
+name: CI
+
+on:
+  push:
+    branches: [main]
+  pull_request:
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+concurrency:
+  group: ci-${{ github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  python:
+    name: Lint and tests
+    runs-on: ubuntu-24.04
+    timeout-minutes: 15
+    steps:
+      - uses: actions/checkout@v7
+      - uses: actions/setup-python@v6
+        with:
+          python-version: "3.13"
+          cache: pip
+      - run: pip install -e ".[dev]"
+      - run: ruff check src tests powerbi
+      - run: pytest -q
+
+  powerbi:
+    name: Power BI project checks
+    runs-on: ubuntu-24.04
+    timeout-minutes: 15
+    defaults:
+      run:
+        shell: bash
+    steps:
+      - uses: actions/checkout@v7
+      - uses: actions/setup-python@v6
+        with:
+          python-version: "3.13"
+      - uses: actions/setup-dotnet@v5
+        with:
+          dotnet-version: "8.0.x"
+      - name: Generated files match generate.py
+        run: |
+          python powerbi/generate.py
+          git diff --exit-code -- powerbi || { echo "::error::run python powerbi/generate.py and commit"; exit 1; }
+      - name: Report files match Microsoft's PBIR schemas
+        run: |
+          pip install jsonschema
+          git clone --quiet --depth 1 --filter=blob:none --sparse https://github.com/microsoft/json-schemas /tmp/json-schemas
+          git -C /tmp/json-schemas sparse-checkout set fabric/item/report fabric/item/semanticModel fabric/pbip fabric/gitIntegration
+          python powerbi/validate.py /tmp/json-schemas
+      - name: Semantic model loads with the Tabular Object Model
+        working-directory: powerbi
+        run: dotnet run --project TmdlCheck -- "NHS Performance.SemanticModel/definition"

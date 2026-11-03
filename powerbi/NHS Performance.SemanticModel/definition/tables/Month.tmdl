@@ -1,0 +1,76 @@
+/// One row per calendar month, including six months ahead for forecasts.
+table Month
+	lineageTag: 6ff74e6b-9f93-527f-b059-d7740f2b8c73
+
+	column month_key
+		dataType: int64
+		isHidden
+		lineageTag: 3cd1f264-1ae9-575b-ae4f-8e8597414e3c
+		summarizeBy: none
+		sourceColumn: month_key
+
+		annotation SummarizationSetBy = Automatic
+
+	column Month
+		dataType: dateTime
+		formatString: mmm yyyy
+		lineageTag: bedf3454-fdca-5556-b7b4-bcc2d3c3dc52
+		summarizeBy: none
+		sourceColumn: month_start
+
+		annotation SummarizationSetBy = Automatic
+
+	column 'Month name'
+		dataType: string
+		lineageTag: 1308a903-c17b-53ce-b806-652dc9cd7301
+		summarizeBy: none
+		sourceColumn: month_name
+		sortByColumn: month_key
+
+		annotation SummarizationSetBy = Automatic
+
+	column Year
+		dataType: int64
+		formatString: 0
+		lineageTag: 14c62e3f-be5b-5b8d-86a1-16484ea10811
+		summarizeBy: none
+		sourceColumn: year
+
+		annotation SummarizationSetBy = Automatic
+
+	column 'Financial year'
+		dataType: string
+		lineageTag: 83a5f394-7390-5305-ad5c-e299b9b8e0e2
+		summarizeBy: none
+		sourceColumn: financial_year
+
+		annotation SummarizationSetBy = Automatic
+
+	column 'Financial year month'
+		dataType: int64
+		formatString: 0
+		lineageTag: cc5b70ef-3751-5a9b-8343-8af7c95de84e
+		summarizeBy: none
+		sourceColumn: fy_month
+
+		annotation SummarizationSetBy = Automatic
+
+	column Quarter
+		dataType: string
+		lineageTag: f70840ca-7305-5ab2-9aa8-95eea64929f2
+		summarizeBy: none
+		sourceColumn: fy_quarter
+
+		annotation SummarizationSetBy = Automatic
+
+	partition Month = m
+		mode: import
+		source =
+				let
+				    Source = LoadParquet("dim_month"),
+				    Kept = Table.SelectColumns(Source, {"month_key", "month_start", "month_name", "year", "financial_year", "fy_month", "fy_quarter"}),
+				    Typed = Table.TransformColumnTypes(Kept, {{"month_key", Int64.Type}, {"month_start", type date}, {"month_name", type text}, {"year", Int64.Type}, {"financial_year", type text}, {"fy_month", Int64.Type}, {"fy_quarter", type text}})
+				in
+				    Typed
+
+	annotation PBI_ResultType = Table

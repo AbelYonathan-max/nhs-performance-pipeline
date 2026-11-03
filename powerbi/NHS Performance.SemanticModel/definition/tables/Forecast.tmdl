@@ -1,0 +1,106 @@
+/// Actuals and six-month forecasts with 80% ranges.
+table Forecast
+	lineageTag: f4490571-4a47-5955-91cb-7510995d27d4
+
+	column series_id
+		dataType: string
+		isHidden
+		lineageTag: ba7a34c0-a132-5538-9a46-58007be90f30
+		summarizeBy: none
+		sourceColumn: series_id
+
+		annotation SummarizationSetBy = Automatic
+
+	column metric
+		dataType: string
+		isHidden
+		lineageTag: 9e857393-499d-5bb2-8485-05c559ce4024
+		summarizeBy: none
+		sourceColumn: metric
+
+		annotation SummarizationSetBy = Automatic
+
+	column Measure
+		dataType: string
+		lineageTag: 6ecc9c8e-a1ea-5bbb-993b-c6e8dd9de141
+		summarizeBy: none
+		sourceColumn: metric_label
+
+		annotation SummarizationSetBy = Automatic
+
+	column Organisation
+		dataType: string
+		lineageTag: c8ee3567-1a00-5bfd-bec4-629631e79692
+		summarizeBy: none
+		sourceColumn: organisation
+
+		annotation SummarizationSetBy = Automatic
+
+	column provider_code
+		dataType: string
+		isHidden
+		lineageTag: a4043170-8048-5240-9bd1-6c9a1e3e6a59
+		summarizeBy: none
+		sourceColumn: provider_code
+
+		annotation SummarizationSetBy = Automatic
+
+	column month_key
+		dataType: int64
+		isHidden
+		lineageTag: cf121f43-0f30-55e9-9755-d1b4c62a5a2e
+		summarizeBy: none
+		sourceColumn: month_key
+
+		annotation SummarizationSetBy = Automatic
+
+	column kind
+		dataType: string
+		isHidden
+		lineageTag: 1f4d5dd7-7a13-51a6-a896-e0c2c1966dc5
+		summarizeBy: none
+		sourceColumn: kind
+
+		annotation SummarizationSetBy = Automatic
+
+	column value
+		dataType: double
+		isHidden
+		formatString: #,0.000
+		lineageTag: a6bd6a1f-5235-5365-a135-1db9136cea50
+		summarizeBy: sum
+		sourceColumn: value
+
+		annotation SummarizationSetBy = Automatic
+
+	column lower_80
+		dataType: double
+		isHidden
+		formatString: #,0.000
+		lineageTag: 5ce6987c-1ba8-55fb-a67e-1d8785378722
+		summarizeBy: sum
+		sourceColumn: lower_80
+
+		annotation SummarizationSetBy = Automatic
+
+	column upper_80
+		dataType: double
+		isHidden
+		formatString: #,0.000
+		lineageTag: a4607581-ee7e-5b62-873a-417d2e9cd0e0
+		summarizeBy: sum
+		sourceColumn: upper_80
+
+		annotation SummarizationSetBy = Automatic
+
+	partition Forecast = m
+		mode: import
+		source =
+				let
+				    Source = LoadParquet("fact_forecast"),
+				    Kept = Table.SelectColumns(Source, {"series_id", "metric", "metric_label", "organisation", "provider_code", "month_key", "kind", "value", "lower_80", "upper_80"}),
+				    Typed = Table.TransformColumnTypes(Kept, {{"series_id", type text}, {"metric", type text}, {"metric_label", type text}, {"organisation", type text}, {"provider_code", type text}, {"month_key", Int64.Type}, {"kind", type text}, {"value", type number}, {"lower_80", type number}, {"upper_80", type number}})
+				in
+				    Typed
+
+	annotation PBI_ResultType = Table

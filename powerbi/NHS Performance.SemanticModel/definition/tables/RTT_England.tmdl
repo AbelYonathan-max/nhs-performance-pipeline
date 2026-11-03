@@ -1,0 +1,83 @@
+/// England RTT totals with medians from summed weekly bands.
+table 'RTT England'
+	lineageTag: fc433bf2-cf45-5a33-b6e1-adc7c192920d
+
+	column month_key
+		dataType: int64
+		isHidden
+		lineageTag: 80338e30-31a8-54a4-9fd8-d43e94633526
+		summarizeBy: none
+		sourceColumn: month_key
+
+		annotation SummarizationSetBy = Automatic
+
+	column treatment_function_code
+		dataType: string
+		isHidden
+		lineageTag: 32f6ed3d-320d-521c-899d-a07bbe4b2a03
+		summarizeBy: none
+		sourceColumn: treatment_function_code
+
+		annotation SummarizationSetBy = Automatic
+
+	column waiting_list
+		dataType: double
+		isHidden
+		formatString: #,0
+		lineageTag: e5c13b5c-7dec-50e1-b93b-ee3148fd20d1
+		summarizeBy: sum
+		sourceColumn: waiting_list
+
+		annotation SummarizationSetBy = Automatic
+
+	column within_18
+		dataType: double
+		isHidden
+		formatString: #,0
+		lineageTag: f37a11a0-5403-52e5-9d1c-5358c24c67fc
+		summarizeBy: sum
+		sourceColumn: within_18
+
+		annotation SummarizationSetBy = Automatic
+
+	column over_52
+		dataType: double
+		isHidden
+		formatString: #,0
+		lineageTag: fefe6145-a1dd-565f-a056-808e78f7377e
+		summarizeBy: sum
+		sourceColumn: over_52
+
+		annotation SummarizationSetBy = Automatic
+
+	column median_weeks
+		dataType: double
+		isHidden
+		formatString: 0.0
+		lineageTag: 2a369788-8ce5-5158-abe2-1207b09dee2a
+		summarizeBy: sum
+		sourceColumn: median_weeks
+
+		annotation SummarizationSetBy = Automatic
+
+	column p92_weeks
+		dataType: double
+		isHidden
+		formatString: 0.0
+		lineageTag: 78aa93ed-44bd-5847-9f5c-e47865bd13df
+		summarizeBy: sum
+		sourceColumn: p92_weeks
+
+		annotation SummarizationSetBy = Automatic
+
+	partition 'RTT England' = m
+		mode: import
+		source =
+				let
+				    Source = LoadParquet("fact_rtt_england"),
+				    Kept = Table.SelectColumns(Source, {"month_key", "treatment_function_code", "waiting_list", "within_18", "over_52", "median_weeks", "p92_weeks"}),
+				    Typed = Table.TransformColumnTypes(Kept, {{"month_key", Int64.Type}, {"treatment_function_code", type text}, {"waiting_list", type number}, {"within_18", type number}, {"over_52", type number}, {"median_weeks", type number}, {"p92_weeks", type number}})
+				in
+				    Typed
+
+	annotation PBI_ResultType = Table

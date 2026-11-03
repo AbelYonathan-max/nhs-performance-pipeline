@@ -1,0 +1,66 @@
+table 'Model scores'
+	lineageTag: 81f1b855-ae8b-5743-beb8-2b315db91ec5
+
+	column metric
+		dataType: string
+		lineageTag: 11cc0807-452c-588b-9b7f-a98f1cfb0d3b
+		summarizeBy: none
+		sourceColumn: metric
+
+		annotation SummarizationSetBy = Automatic
+
+	column Method
+		dataType: string
+		lineageTag: 0aca0b1c-5a1c-5fca-a5e5-52122e66fff0
+		summarizeBy: none
+		sourceColumn: model
+
+		annotation SummarizationSetBy = Automatic
+
+	column 'Months ahead'
+		dataType: int64
+		formatString: 0
+		lineageTag: a554e314-95e6-5e52-a974-7adfecddd57d
+		summarizeBy: none
+		sourceColumn: horizon
+
+		annotation SummarizationSetBy = Automatic
+
+	column 'Mean absolute error'
+		dataType: double
+		formatString: 0.00%
+		lineageTag: e8e9f641-3480-5470-ad4b-6091fb25c1a2
+		summarizeBy: none
+		sourceColumn: mae
+
+		annotation SummarizationSetBy = Automatic
+
+	column 'Forecasts scored'
+		dataType: int64
+		formatString: #,0
+		lineageTag: f87d9d79-2da8-5811-bb36-022f2d951a2d
+		summarizeBy: none
+		sourceColumn: n
+
+		annotation SummarizationSetBy = Automatic
+
+	column Used
+		dataType: int64
+		formatString: 0
+		lineageTag: fd2666f5-8f3c-5153-8258-c7406cc0e273
+		summarizeBy: none
+		sourceColumn: chosen
+
+		annotation SummarizationSetBy = Automatic
+
+	partition 'Model scores' = m
+		mode: import
+		source =
+				let
+				    Source = LoadParquet("model_backtest"),
+				    Kept = Table.SelectColumns(Source, {"metric", "model", "horizon", "mae", "n", "chosen"}),
+				    Typed = Table.TransformColumnTypes(Kept, {{"metric", type text}, {"model", type text}, {"horizon", Int64.Type}, {"mae", type number}, {"n", Int64.Type}, {"chosen", Int64.Type}})
+				in
+				    Typed
+
+	annotation PBI_ResultType = Table

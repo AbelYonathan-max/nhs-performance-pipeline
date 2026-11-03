@@ -1,0 +1,123 @@
+/// Monthly A&E attendances and 4-hour performance by organisation.
+table 'A&E'
+	lineageTag: 1f94d833-7e85-5cd7-8fa5-a62db7579fe3
+
+	column month_key
+		dataType: int64
+		isHidden
+		lineageTag: e2124cf0-7e4f-546f-945a-50a184778e93
+		summarizeBy: none
+		sourceColumn: month_key
+
+		annotation SummarizationSetBy = Automatic
+
+	column provider_code
+		dataType: string
+		isHidden
+		lineageTag: 249ab714-77ee-5108-b369-4cdf7520a414
+		summarizeBy: none
+		sourceColumn: provider_code
+
+		annotation SummarizationSetBy = Automatic
+
+	column attendances
+		dataType: double
+		isHidden
+		formatString: #,0
+		lineageTag: 054f410d-bba1-516e-af4c-1c39fbdd9d4e
+		summarizeBy: sum
+		sourceColumn: attendances
+
+		annotation SummarizationSetBy = Automatic
+
+	column attendances_type1
+		dataType: double
+		isHidden
+		formatString: #,0
+		lineageTag: 608d99ff-5963-50e0-b210-690e69eca6c6
+		summarizeBy: sum
+		sourceColumn: attendances_type1
+
+		annotation SummarizationSetBy = Automatic
+
+	column over_4hr
+		dataType: double
+		isHidden
+		formatString: #,0
+		lineageTag: 64bac7be-6dae-5655-9ec1-9d7d2988e9ba
+		summarizeBy: sum
+		sourceColumn: over_4hr
+
+		annotation SummarizationSetBy = Automatic
+
+	column over_4hr_type1
+		dataType: double
+		isHidden
+		formatString: #,0
+		lineageTag: 3ba7ba6e-01b5-5550-b5a6-61fb17e0b95a
+		summarizeBy: sum
+		sourceColumn: over_4hr_type1
+
+		annotation SummarizationSetBy = Automatic
+
+	column within_4hr
+		dataType: double
+		isHidden
+		formatString: #,0
+		lineageTag: 99936c2b-d797-57c6-ba23-9262e290f2a3
+		summarizeBy: sum
+		sourceColumn: within_4hr
+
+		annotation SummarizationSetBy = Automatic
+
+	column dta_4_12
+		dataType: double
+		isHidden
+		formatString: #,0
+		lineageTag: e2cbca6e-4155-593c-80ee-dcb218e4ec30
+		summarizeBy: sum
+		sourceColumn: dta_4_12
+
+		annotation SummarizationSetBy = Automatic
+
+	column dta_12_plus
+		dataType: double
+		isHidden
+		formatString: #,0
+		lineageTag: 049f3a38-87b9-5915-9715-3bd53b33930d
+		summarizeBy: sum
+		sourceColumn: dta_12_plus
+
+		annotation SummarizationSetBy = Automatic
+
+	column emergency_admissions_ae
+		dataType: double
+		isHidden
+		formatString: #,0
+		lineageTag: 47dd4ab0-059b-5faa-8684-33a317deaf6b
+		summarizeBy: sum
+		sourceColumn: emergency_admissions_ae
+
+		annotation SummarizationSetBy = Automatic
+
+	column emergency_admissions_total
+		dataType: double
+		isHidden
+		formatString: #,0
+		lineageTag: a8b72a24-60e4-59b1-8aeb-65402d2fe542
+		summarizeBy: sum
+		sourceColumn: emergency_admissions_total
+
+		annotation SummarizationSetBy = Automatic
+
+	partition 'A&E' = m
+		mode: import
+		source =
+				let
+				    Source = LoadParquet("fact_ae"),
+				    Kept = Table.SelectColumns(Source, {"month_key", "provider_code", "attendances", "attendances_type1", "over_4hr", "over_4hr_type1", "within_4hr", "dta_4_12", "dta_12_plus", "emergency_admissions_ae", "emergency_admissions_total"}),
+				    Typed = Table.TransformColumnTypes(Kept, {{"month_key", Int64.Type}, {"provider_code", type text}, {"attendances", type number}, {"attendances_type1", type number}, {"over_4hr", type number}, {"over_4hr_type1", type number}, {"within_4hr", type number}, {"dta_4_12", type number}, {"dta_12_plus", type number}, {"emergency_admissions_ae", type number}, {"emergency_admissions_total", type number}})
+				in
+				    Typed
+
+	annotation PBI_ResultType = Table
