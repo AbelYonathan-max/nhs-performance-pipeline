@@ -42,12 +42,12 @@ jobs:
         if: always()
         shell: bash
         run: |
-          set -uo pipefail
+          set +e
           mkdir -p probe/ae probe/rtt
           cp data/raw/manifest.json probe/ || true
           cp data/raw/ae/*.csv probe/ae/ || true
-          ls data/raw/rtt | tail -2 | while read f; do cp "data/raw/rtt/$f" probe/rtt/; done
-          ls data/raw/rtt | head -1 | while read f; do cp "data/raw/rtt/$f" probe/rtt/; done
+          ls data/raw/rtt 2>/dev/null | tail -2 | while read f; do cp "data/raw/rtt/$f" probe/rtt/; done
+          ls data/raw/rtt 2>/dev/null | head -1 | while read f; do cp "data/raw/rtt/$f" probe/rtt/; done
           set -e
           cd probe
           git init -q -b raw-sample
