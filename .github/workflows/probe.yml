@@ -29,6 +29,7 @@ jobs:
           u = sys.argv[1]
           r = requests.get(u, headers={"User-Agent": "nhs-performance-pipeline/1.0"}, timeout=60)
           print("##", u, r.status_code)
+          open("probe/" + u.rstrip("/").split("/")[-1] + ".html", "w").write(r.text)
           for a in BeautifulSoup(r.text, "html.parser").find_all("a", href=True):
               t = " ".join(a.get_text(" ", strip=True).split())
               if "uploads" in a["href"]:
@@ -36,15 +37,18 @@ jobs:
           PY
           done
       - run: nhsp fetch
+        continue-on-error: true
       - name: Push sample to raw-sample branch
+        if: always()
         shell: bash
         run: |
-          set -euo pipefail
+          set -uo pipefail
           mkdir -p probe/ae probe/rtt
-          cp data/raw/manifest.json probe/
-          cp data/raw/ae/*.csv probe/ae/
+          cp data/raw/manifest.json probe/ || true
+          cp data/raw/ae/*.csv probe/ae/ || true
           ls data/raw/rtt | tail -2 | while read f; do cp "data/raw/rtt/$f" probe/rtt/; done
           ls data/raw/rtt | head -1 | while read f; do cp "data/raw/rtt/$f" probe/rtt/; done
+          set -e
           cd probe
           git init -q -b raw-sample
           git config user.name "github-actions[bot]"
