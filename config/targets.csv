@@ -1,0 +1,8 @@
+metric,financial_year,target_date,value,scope,source
+ae_4hr_pct,2025-26,2026-03-31,0.78,national,"NHS England, 2025/26 priorities and operational planning guidance"
+ae_4hr_pct,2026-27,2027-03-31,0.82,national,"NHS England, Medium Term Planning Framework 2026/27 to 2028/29"
+ae_4hr_pct,2028-29,2029-03-31,0.85,national,"NHS England, Medium Term Planning Framework 2026/27 to 2028/29"
+rtt_18wk_pct,2025-26,2026-03-31,0.65,national,"NHS England, 2025/26 priorities and operational planning guidance"
+rtt_18wk_pct,2026-27,2027-03-31,0.70,national,"NHS England, Medium Term Planning Framework 2026/27 to 2028/29"
+rtt_18wk_pct,2028-29,2029-03-31,0.92,national,"NHS England, Medium Term Planning Framework 2026/27 to 2028/29"
+rtt_52wk_share,2025-26,2026-03-31,0.01,national,"NHS England, 2025/26 priorities and operational planning guidance"
