@@ -1,0 +1,41 @@
+[build-system]
+requires = ["setuptools>=80"]
+build-backend = "setuptools.build_meta"
+
+[project]
+name = "nhs-performance-pipeline"
+version = "1.0.0"
+description = "NHS England A&E and RTT performance data pipeline feeding Power BI and an Excel pack"
+readme = "README.md"
+requires-python = ">=3.12"
+license = "MIT"
+dependencies = [
+    "requests>=2.32",
+    "beautifulsoup4>=4.13",
+    "pandas>=2.2",
+    "numpy>=2.0",
+    "scikit-learn>=1.6",
+    "openpyxl>=3.1",
+]
+
+[project.optional-dependencies]
+dev = ["pytest>=8", "ruff>=0.9", "jsonschema>=4.23"]
+
+[project.scripts]
+nhsp = "nhs_pipeline.cli:main"
+
+[tool.setuptools.packages.find]
+where = ["src"]
+
+[tool.setuptools.package-data]
+nhs_pipeline = ["sql/*.sql"]
+
+[tool.ruff]
+line-length = 100
+target-version = "py312"
+
+[tool.ruff.lint]
+select = ["E", "F", "I", "B", "UP", "SIM"]
+
+[tool.pytest.ini_options]
+testpaths = ["tests"]

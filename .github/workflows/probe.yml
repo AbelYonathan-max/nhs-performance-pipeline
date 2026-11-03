@@ -1,0 +1,53 @@
+name: Probe sources (temporary)
+
+on:
+  workflow_dispatch:
+
+permissions:
+  contents: write
+
+jobs:
+  probe:
+    runs-on: ubuntu-24.04
+    steps:
+      - uses: actions/checkout@v7
+      - uses: actions/setup-python@v6
+        with:
+          python-version: "3.13"
+      - run: pip install -e .
+      - name: Dump link texts
+        shell: bash
+        run: |
+          mkdir -p probe
+          for u in \
+            https://www.england.nhs.uk/statistics/statistical-work-areas/ae-waiting-times-and-activity/ae-attendances-and-emergency-admissions-2026-27/ \
+            https://www.england.nhs.uk/statistics/statistical-work-areas/rtt-waiting-times/rtt-data-2026-27/ \
+            https://www.england.nhs.uk/statistics/statistical-work-areas/rtt-waiting-times/rtt-data-2023-24/ ; do
+            python - "$u" >> probe/links.txt <<'PY'
+          import sys, requests
+          from bs4 import BeautifulSoup
+          u = sys.argv[1]
+          r = requests.get(u, headers={"User-Agent": "nhs-performance-pipeline/1.0"}, timeout=60)
+          print("##", u, r.status_code)
+          for a in BeautifulSoup(r.text, "html.parser").find_all("a", href=True):
+              t = " ".join(a.get_text(" ", strip=True).split())
+              if "uploads" in a["href"]:
+                  print(t, "|", a["href"])
+          PY
+          done
+      - run: nhsp fetch
+      - name: Push sample to raw-sample branch
+        shell: bash
+        run: |
+          set -euo pipefail
+          mkdir -p probe/ae probe/rtt
+          cp data/raw/manifest.json probe/
+          cp data/raw/ae/*.csv probe/ae/
+          ls data/raw/rtt | tail -2 | while read f; do cp "data/raw/rtt/$f" probe/rtt/; done
+          ls data/raw/rtt | head -1 | while read f; do cp "data/raw/rtt/$f" probe/rtt/; done
+          cd probe
+          git init -q -b raw-sample
+          git config user.name "github-actions[bot]"
+          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+          git add -A && git commit -qm "Raw sample"
+          git push -f "https://x-access-token:${{ github.token }}@github.com/${{ github.repository }}.git" raw-sample

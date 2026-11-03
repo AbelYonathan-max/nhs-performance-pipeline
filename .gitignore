@@ -1,0 +1,8 @@
+data/
+!data/targets.csv
+__pycache__/
+*.egg-info/
+.venv/
+.pytest_cache/
+.ruff_cache/
+out/
