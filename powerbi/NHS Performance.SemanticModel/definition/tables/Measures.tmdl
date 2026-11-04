@@ -12,14 +12,14 @@ table Measures
 		displayFolder: A&E
 		lineageTag: d4cb498a-be49-5633-94aa-6c7620d0e356
 
-	/// Share of all A&E attendances admitted, transferred or discharged within 4 hours.
-	measure 'A&E 4hr %' = DIVIDE ( [Within 4 hours], [Attendances] )
+	/// Share of all A&E attendances admitted, transferred or discharged within 4 hours. Sites that did not report the 4-hour measure that month are left out.
+	measure 'A&E 4hr %' = DIVIDE ( [Within 4 hours], CALCULATE ( [Attendances], 'A&E'[reports_4hr] = 1 ) )
 		formatString: 0.0%
 		displayFolder: A&E
 		lineageTag: 1fa2d418-1d39-5df3-83c2-8e89d5c66edb
 
 	/// As A&E 4hr % but major emergency departments (type 1) only.
-	measure 'Type 1 4hr %' = DIVIDE ( SUM ( 'A&E'[attendances_type1] ) - SUM ( 'A&E'[over_4hr_type1] ), SUM ( 'A&E'[attendances_type1] ) )
+	measure 'Type 1 4hr %' = CALCULATE ( DIVIDE ( SUM ( 'A&E'[attendances_type1] ) - SUM ( 'A&E'[over_4hr_type1] ), SUM ( 'A&E'[attendances_type1] ) ), 'A&E'[reports_4hr] = 1 )
 		formatString: 0.0%
 		displayFolder: A&E
 		lineageTag: b6b8a3ca-8b6f-5358-a809-428d95a1b3b0

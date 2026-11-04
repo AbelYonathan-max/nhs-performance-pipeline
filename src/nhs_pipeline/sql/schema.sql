@@ -22,7 +22,7 @@ CREATE TABLE dim_provider (
     provider_code   TEXT PRIMARY KEY,             -- ODS code, e.g. RJ1
     provider_name   TEXT NOT NULL,
     region_code     TEXT REFERENCES dim_region (region_code),
-    sector          TEXT NOT NULL,                -- NHS trust / Independent sector / Other
+    sector          TEXT NOT NULL,                -- NHS trust / Other NHS / Other provider
     has_type1_ae    INTEGER NOT NULL DEFAULT 0,   -- runs a major emergency department
     in_ae           INTEGER NOT NULL DEFAULT 0,
     in_rtt          INTEGER NOT NULL DEFAULT 0,
@@ -44,6 +44,7 @@ CREATE TABLE fact_ae (
     over_4hr                    INTEGER NOT NULL CHECK (over_4hr >= 0),
     over_4hr_type1              INTEGER NOT NULL CHECK (over_4hr_type1 >= 0),
     within_4hr                  INTEGER NOT NULL,
+    reports_4hr                 INTEGER NOT NULL CHECK (reports_4hr IN (0, 1)),  -- 0 = 4-hour columns not reported
     dta_4_12                    INTEGER NOT NULL CHECK (dta_4_12 >= 0),
     dta_12_plus                 INTEGER NOT NULL CHECK (dta_12_plus >= 0),
     emergency_admissions_ae     INTEGER NOT NULL CHECK (emergency_admissions_ae >= 0),
@@ -70,7 +71,7 @@ CREATE TABLE fact_rtt (
     median_weeks            REAL,
     p92_weeks               REAL,
     PRIMARY KEY (month_key, provider_code, treatment_function_code, part),
-    CHECK (within_18 + over_18 = total)
+    CHECK (within_18 + over_18 = total OR part = 'new_periods')
 );
 
 -- England totals worked out from summed weekly bands (so medians are exact).

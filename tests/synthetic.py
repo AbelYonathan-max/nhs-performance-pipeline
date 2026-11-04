@@ -89,10 +89,13 @@ def rtt_zip(period: str, rng: np.random.Generator) -> bytes:
                 for (tf_code, tf_name), counts in zip(
                     TREATMENT_FUNCTIONS + [("C_999", "Total")], by_tf + [sum(by_tf)], strict=True
                 ):
-                    rows.append([f"RTT-{MONTH_NAMES[month - 1].title()}-{year}", "Q71",
-                                 "NHS ENGLAND LONDON", code, name, "Q71", "NHS ENGLAND LONDON",
-                                 commissioner, "NHS X ICB", part, desc, tf_code, tf_name, *counts,
-                                 counts.sum(), 3, counts.sum() + 3])
+                    measures = [*counts, counts.sum(), 3, counts.sum() + 3]
+                    if part == "Part_3":  # new clock starts: only "Total All" is filled in
+                        measures = [""] * (len(counts) + 2) + [counts.sum()]
+                    rows.append([f"RTT-{MONTH_NAMES[month - 1].title()}-{year}", "QKK",
+                                 "NHS SOUTH EAST LONDON INTEGRATED CARE BOARD", code, name, "QKK",
+                                 "NHS SOUTH EAST LONDON INTEGRATED CARE BOARD", commissioner,
+                                 "NHS X ICB", part, desc, tf_code, tf_name, *measures])
     header = ["Period", "Provider Parent Org Code", "Provider Parent Name", "Provider Org Code",
               "Provider Org Name", "Commissioner Parent Org Code", "Commissioner Parent Name",
               "Commissioner Org Code", "Commissioner Org Name", "RTT Part Type",

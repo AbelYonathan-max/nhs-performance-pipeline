@@ -13,7 +13,7 @@ def test_region_codes():
 
 def test_sector():
     assert warehouse.sector("RJ1", "GUY'S AND ST THOMAS'") == "NHS trust"
-    assert warehouse.sector("NT4", "BMI HEALTHCARE") == "Independent sector"
+    assert warehouse.sector("NT4", "BMI HEALTHCARE") == "Other provider"
 
 
 def test_dim_month_financial_year():

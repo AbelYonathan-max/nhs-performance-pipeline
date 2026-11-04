@@ -32,6 +32,10 @@ def norm(name: str) -> str:
 
 def to_number(series: pd.Series) -> pd.Series:
     """Published files use '-', '*' or blanks for nothing/suppressed."""
+    try:
+        return pd.to_numeric(series, errors="raise")  # fast path: already plain numbers
+    except (ValueError, TypeError):
+        pass
     cleaned = (
         series.astype("string")
         .str.replace(",", "", regex=False)
@@ -85,7 +89,7 @@ AE_OPTIONAL = {k for k in AE_MEASURES if "booked" in k}
 AE_COLUMNS = [
     "period", "provider_code", "provider_name", "region_name",
     "attendances", "attendances_type1", "over_4hr", "over_4hr_type1",
-    "within_4hr", "dta_4_12", "dta_12_plus",
+    "within_4hr", "reports_4hr", "dta_4_12", "dta_12_plus",
     "emergency_admissions_ae", "emergency_admissions_total",
 ]
 
@@ -130,7 +134,12 @@ def parse_ae(raw: bytes | str | Path, period: str) -> pd.DataFrame:
             axis=1
         ),
     )
-    out["within_4hr"] = out["attendances"] - out["over_4hr"]
+    # Sites testing new standards (14 trusts in April-May 2023) left the 4-hour
+    # columns at zero. A big type 1 department with no 4-hour breaches is one of
+    # those: keep its attendances but leave it out of 4-hour percentages.
+    out["reports_4hr"] = ~((out["attendances_type1"] >= 1000) & (out["over_4hr_type1"] == 0))
+    out["within_4hr"] = (out["attendances"] - out["over_4hr"]).where(out["reports_4hr"], 0.0)
+    out["reports_4hr"] = out["reports_4hr"].astype(int)
     out["emergency_admissions_total"] = out["emergency_admissions_ae"] + v["emerg_adm_not_ae"]
     out = out[out["provider_code"].notna()]
     return out[AE_COLUMNS].reset_index(drop=True)
@@ -204,7 +213,15 @@ def read_rtt_csv(raw: bytes | Path) -> pd.DataFrame:
             if len(names) != 1:
                 raise SchemaError(f"expected one CSV in RTT zip, found {names}")
             data = zf.read(names[0])
-    return pd.read_csv(io.BytesIO(data), dtype=str, encoding="latin-1")
+    header = pd.read_csv(io.BytesIO(data), nrows=0, encoding="latin-1").columns
+    counts = [c for c in header if re.match(r"(gt \d|total|patients with unknown)", norm(c))]
+    text = {c: str for c in header if c not in counts}
+    try:
+        # Let the C parser read the ~110 count columns as numbers: much faster.
+        return pd.read_csv(io.BytesIO(data), dtype=text, encoding="latin-1", thousands=",",
+                           na_values=["-", "*", ".."])
+    except ValueError:
+        return pd.read_csv(io.BytesIO(data), dtype=str, encoding="latin-1")
 
 
 def parse_rtt(raw: bytes | Path, period: str) -> tuple[pd.DataFrame, pd.DataFrame]:
@@ -224,6 +241,7 @@ def parse_rtt(raw: bytes | Path, period: str) -> tuple[pd.DataFrame, pd.DataFram
     tf_code = pick(columns, r"treatment function code")
     tf_name = pick(columns, r"treatment function name")
     unknown = pick(columns, r"patients with unknown clock start date", required=False)
+    total_all = pick(columns, r"total all", required=False)
     bands = week_bands(columns)
 
     keys = pd.DataFrame({
@@ -240,6 +258,8 @@ def parse_rtt(raw: bytes | Path, period: str) -> tuple[pd.DataFrame, pd.DataFram
     band_values["unknown_clock_start"] = (
         to_number(df[unknown]).fillna(0.0) if unknown else 0.0
     )
+    # New clock starts (part 3) have no week bands, only "Total All".
+    band_values["reported_total"] = to_number(df[total_all]).fillna(0.0) if total_all else 0.0
     frame = pd.concat([keys, band_values], axis=1)
     frame = frame[frame["part"].notna() & frame["provider_code"].notna()]
 
@@ -249,11 +269,8 @@ def parse_rtt(raw: bytes | Path, period: str) -> tuple[pd.DataFrame, pd.DataFram
         ["provider_name", "provider_parent_name", "treatment_function_name"]
     ].first()
     provider = names.join(frame.groupby(group, sort=False)[band_cols].sum()).reset_index()
-    national = (
-        provider.groupby(["treatment_function_code", "part"], sort=False)
-        .agg({"treatment_function_name": "first", **{c: "sum" for c in band_cols}})
-        .reset_index()
-    )
+    by_tf = provider.groupby(["treatment_function_code", "part"], sort=False)
+    national = by_tf[["treatment_function_name"]].first().join(by_tf[band_cols].sum()).reset_index()
     edges = np.array([lo for lo, _, _ in bands], dtype=float)
     return (
         derive_waits(provider, edges, period)[RTT_COLUMNS],
@@ -268,8 +285,11 @@ def derive_waits(frame: pd.DataFrame, edges: np.ndarray, period: str) -> pd.Data
     def from_week(week: int) -> np.ndarray:
         return counts[:, edges >= week].sum(axis=1)
 
-    frame = frame.copy()
+    frame = frame.copy()  # also defragments
     frame["total"] = counts.sum(axis=1)
+    if "reported_total" in frame:
+        starts = (frame["part"] == "new_periods").to_numpy()
+        frame.loc[starts, "total"] = frame.loc[starts, "reported_total"]
     frame["within_18"] = counts[:, edges < 18].sum(axis=1)
     frame["over_18"] = from_week(18)
     frame["over_52"] = from_week(52)

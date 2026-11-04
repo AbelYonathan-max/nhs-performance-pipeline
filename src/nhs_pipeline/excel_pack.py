@@ -124,7 +124,9 @@ def load_frames(db: Path) -> dict[str, pd.DataFrame]:
                    f.attendances AS "Attendances", f.within_4hr AS "Within 4 hours",
                    f.over_4hr AS "Over 4 hours", f.attendances_type1 AS "Type 1 attendances",
                    f.over_4hr_type1 AS "Type 1 over 4 hours", f.dta_12_plus AS "12+ hours from decision to admit",
-                   f.emergency_admissions_total AS "Emergency admissions"
+                   f.emergency_admissions_total AS "Emergency admissions",
+                   f.attendances * f.reports_4hr AS "Attendances in 4-hour measure",
+                   f.attendances_type1 * f.reports_4hr AS "Type 1 in 4-hour measure"
             FROM fact_ae f JOIN dim_provider p USING (provider_code)
             LEFT JOIN dim_region r USING (region_code)
             WHERE f.month_key >= {ae_first}
@@ -141,6 +143,7 @@ def load_frames(db: Path) -> dict[str, pd.DataFrame]:
         "eng": q("""
             SELECT m.month_key AS "Month key", m.month_name AS "Month",
                    a.attendances AS "A&E attendances", a.within_4hr AS "A&E within 4 hours",
+                   a.attendances_4hr AS "A&E attendances in 4-hour measure",
                    a.dta_12_plus AS "12+ hours from decision to admit",
                    r.waiting_list AS "RTT waiting list", r.within_18 AS "RTT within 18 weeks",
                    r.over_52 AS "RTT over 52 weeks", r.median_weeks AS "RTT median wait (weeks)",
@@ -192,12 +195,14 @@ def build(db: Path, out_path: Path) -> Path:
     n_rtt = write_table(d_rtt, f["rtt"], "RTT", {
         **{c: INT for c in f["rtt"].columns[5:]}, "Median wait (weeks)": WEEKS})
     eng = f["eng"].copy()
+    counted = eng.pop("A&E attendances in 4-hour measure")
     eng["A&E within 4 hours %"] = None
     eng["A&E target"] = None
     eng["RTT within 18 weeks %"] = None
     eng["RTT target"] = None
+    eng["A&E attendances in 4-hour measure"] = counted  # column O
     n_eng = write_table(d_eng, eng, "England", {
-        **{c: INT for c in eng.columns[2:8]},
+        **{c: INT for c in eng.columns[2:8]}, "A&E attendances in 4-hour measure": INT,
         "RTT median wait (weeks)": WEEKS, "RTT 92nd percentile wait (weeks)": WEEKS,
         "A&E within 4 hours %": PCT, "A&E target": PCT, "RTT within 18 weeks %": PCT,
         "RTT target": PCT})
@@ -207,7 +212,7 @@ def build(db: Path, out_path: Path) -> Path:
 
     for name, col in (("AE_Key", "A"), ("AE_Code", "B"), ("AE_Region", "D"), ("AE_Major", "E"),
                       ("AE_Att", "F"), ("AE_Within", "G"), ("AE_T1", "I"), ("AE_T1Over", "J"),
-                      ("AE_DTA12", "K")):
+                      ("AE_DTA12", "K"), ("AE_Att4", "M"), ("AE_T14", "N")):
         define(wb, name, "Data_AE", col, n_ae)
     for name, col in (("RTT_Key", "A"), ("RTT_Code", "B"), ("RTT_Region", "D"), ("RTT_WL", "F"),
                       ("RTT_Within", "G"), ("RTT_52", "H"), ("RTT_Median", "K")):
@@ -219,7 +224,7 @@ def build(db: Path, out_path: Path) -> Path:
 
     # England percentages and the target that applied each month.
     for r in range(2, n_eng + 1):
-        d_eng[f"K{r}"] = f'=IF(C{r}="","",D{r}/C{r})'
+        d_eng[f"K{r}"] = f'=IF(O{r}="","",D{r}/O{r})'
         d_eng[f"L{r}"] = (f'=IFERROR(INDEX(TGT_Value,MATCH("ae_4hr_pct|"&{fy_formula(f"A{r}")},TGT_Key,0)),"")')
         d_eng[f"M{r}"] = f'=IF(F{r}="","",G{r}/F{r})'
         d_eng[f"N{r}"] = (f'=IFERROR(INDEX(TGT_Value,MATCH("rtt_18wk_pct|"&{fy_formula(f"A{r}")},TGT_Key,0)),"")')
@@ -308,10 +313,10 @@ def build(db: Path, out_path: Path) -> Path:
     ae_keys = ["$B$3", prev_month("$B$3"), "($B$3-100)"]
     rtt_keys = ["$B$4", prev_month("$B$4"), "($B$4-100)"]
     rows = [
-        ("A&E: seen within 4 hours", [f"={ae_sum('AE_Within', k)}/{ae_sum('AE_Att', k)}" for k in ae_keys],
+        ("A&E: seen within 4 hours", [f"={ae_sum('AE_Within', k)}/{ae_sum('AE_Att4', k)}" for k in ae_keys],
          PCT, "ae_4hr_pct", "$B$3", True),
         ("A&E: type 1 (major A&E) within 4 hours",
-         [f"=1-{ae_sum('AE_T1Over', k)}/{ae_sum('AE_T1', k)}" for k in ae_keys], PCT, None, None, True),
+         [f"=1-{ae_sum('AE_T1Over', k)}/{ae_sum('AE_T14', k)}" for k in ae_keys], PCT, None, None, True),
         ("A&E: attendances", [f"={ae_sum('AE_Att', k)}" for k in ae_keys], INT, None, None, None),
         ("A&E: waits of 12+ hours from decision to admit",
          [f"={ae_sum('AE_DTA12', k)}" for k in ae_keys], INT, None, None, False),
@@ -405,7 +410,7 @@ def build(db: Path, out_path: Path) -> Path:
         t[f"B{r}"] = f'=DATE(INT(A{r}/100),MOD(A{r},100),1)'
         t[f"B{r}"].number_format = "mmm yyyy"
         t[f"C{r}"] = f'=IF(SUMIFS(AE_Att,AE_Code,$B$4,AE_Key,A{r})=0,"",SUMIFS(AE_Att,AE_Code,$B$4,AE_Key,A{r}))'
-        t[f"D{r}"] = f'=IFERROR(SUMIFS(AE_Within,AE_Code,$B$4,AE_Key,A{r})/C{r},"")'
+        t[f"D{r}"] = f'=IFERROR(SUMIFS(AE_Within,AE_Code,$B$4,AE_Key,A{r})/SUMIFS(AE_Att4,AE_Code,$B$4,AE_Key,A{r}),"")'
         t[f"E{r}"] = f'=IF(C{r}="","",SUMIFS(AE_DTA12,AE_Code,$B$4,AE_Key,A{r}))'
         t[f"F{r}"] = f'=IF(SUMIFS(RTT_WL,RTT_Code,$B$4,RTT_Key,A{r})=0,"",SUMIFS(RTT_WL,RTT_Code,$B$4,RTT_Key,A{r}))'
         t[f"G{r}"] = f'=IFERROR(SUMIFS(RTT_Within,RTT_Code,$B$4,RTT_Key,A{r})/F{r},"")'
@@ -456,9 +461,9 @@ def build(db: Path, out_path: Path) -> Path:
 
     ae_spec = [
         ("Attendances", "=SUMIFS(AE_Att,AE_Code,$B{r},AE_Key,{key})", INT),
-        ("Within 4 hours", '=IFERROR(SUMIFS(AE_Within,AE_Code,$B{r},AE_Key,{key})/E{r},"")', PCT),
+        ("Within 4 hours", '=IFERROR(SUMIFS(AE_Within,AE_Code,$B{r},AE_Key,{key})/SUMIFS(AE_Att4,AE_Code,$B{r},AE_Key,{key}),"")', PCT),
         ("Same month last year",
-         '=IFERROR(SUMIFS(AE_Within,AE_Code,$B{r},AE_Key,{key}-100)/SUMIFS(AE_Att,AE_Code,$B{r},AE_Key,{key}-100),"")',
+         '=IFERROR(SUMIFS(AE_Within,AE_Code,$B{r},AE_Key,{key}-100)/SUMIFS(AE_Att4,AE_Code,$B{r},AE_Key,{key}-100),"")',
          PCT),
         ("Change (points)", '=IFERROR(F{r}-G{r},"")', "+0.0%;-0.0%;0.0%"),
         ("12+ hours from decision to admit", "=SUMIFS(AE_DTA12,AE_Code,$B{r},AE_Key,{key})", INT),
@@ -566,7 +571,7 @@ def build(db: Path, out_path: Path) -> Path:
             mid_color="FFEB84", end_type="max", end_color="63BE7B"))
         return last
 
-    last = matrix(3, "A&E: seen within 4 hours", "AE_Within", "AE_Att", "AE_Key", "AE_Region", "Summary!$B$3")
+    last = matrix(3, "A&E: seen within 4 hours", "AE_Within", "AE_Att4", "AE_Key", "AE_Region", "Summary!$B$3")
     matrix(last + 3, "RTT: waiting under 18 weeks", "RTT_Within", "RTT_WL", "RTT_Key", "RTT_Region",
            "Summary!$B$4")
     rg.column_dimensions["A"].width = 28
@@ -689,19 +694,21 @@ def build(db: Path, out_path: Path) -> Path:
         ("Measure", "Definition", "Source"),
         ("A&E: seen within 4 hours", "Attendances at all A&E types (including booked appointments) where the "
          "patient was admitted, transferred or discharged within 4 hours of arrival, divided by all "
-         "attendances.", "A&E Attendances and Emergency Admissions (monthly provider CSV)"),
+         "attendances. Sites that did not report the 4-hour measure in a month (14 trusts testing new "
+         "standards in April and May 2023) are left out of the percentage for that month.", "A&E Attendances and Emergency Admissions (monthly provider CSV)"),
         ("A&E: type 1 within 4 hours", "As above for major emergency departments (type 1) only.", "As above"),
         ("12+ hours from decision to admit", "Patients admitted via A&E who waited more than 12 hours from the "
          "decision to admit to being admitted (a 'trolley wait').", "As above"),
         ("RTT waiting list", "Incomplete consultant-led referral to treatment pathways at month end (RTT part "
-         "2), all treatment functions, summed over commissioners.", "RTT Waiting Times full CSV extract"),
+         "2) with a known clock start, all treatment functions, summed over commissioners.", "RTT Waiting Times full CSV extract"),
         ("RTT: waiting under 18 weeks", "Share of the waiting list in the weekly bands below 18 weeks.",
          "As above"),
         ("RTT: over 52 weeks", "Pathways waiting 52 weeks or more.", "As above"),
         ("RTT median wait", "Interpolated from the weekly bands. England medians are worked out from England's "
          "summed bands, not by averaging trust medians.", "As above"),
-        ("Region", "NHS England region of the organisation, taken from the A&E file's parent organisation.",
-         "A&E file"),
+        ("Region", "NHS England region of the organisation, taken from the A&E file's parent organisation. "
+         "Organisations only in the RTT file take the region most providers in their integrated care board "
+         "sit in.", "A&E and RTT files"),
         ("Forecast", "Best of three methods in a rolling backtest: gradient boosting (scikit-learn) on recent "
          "changes and seasonality, same as last month, or same as a year ago.", "This pipeline"),
         ("Data protection", "All inputs are published aggregate statistics for organisations. No patient-level "

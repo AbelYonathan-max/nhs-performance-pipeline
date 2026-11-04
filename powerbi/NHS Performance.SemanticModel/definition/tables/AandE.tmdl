@@ -70,6 +70,16 @@ table 'A&E'
 
 		annotation SummarizationSetBy = Automatic
 
+	column reports_4hr
+		dataType: double
+		isHidden
+		formatString: #,0
+		lineageTag: 310d84ff-95cc-5aa5-a687-a6a99c6c861a
+		summarizeBy: sum
+		sourceColumn: reports_4hr
+
+		annotation SummarizationSetBy = Automatic
+
 	column dta_4_12
 		dataType: double
 		isHidden
@@ -115,8 +125,8 @@ table 'A&E'
 		source =
 				let
 				    Source = LoadParquet("fact_ae"),
-				    Kept = Table.SelectColumns(Source, {"month_key", "provider_code", "attendances", "attendances_type1", "over_4hr", "over_4hr_type1", "within_4hr", "dta_4_12", "dta_12_plus", "emergency_admissions_ae", "emergency_admissions_total"}),
-				    Typed = Table.TransformColumnTypes(Kept, {{"month_key", Int64.Type}, {"provider_code", type text}, {"attendances", type number}, {"attendances_type1", type number}, {"over_4hr", type number}, {"over_4hr_type1", type number}, {"within_4hr", type number}, {"dta_4_12", type number}, {"dta_12_plus", type number}, {"emergency_admissions_ae", type number}, {"emergency_admissions_total", type number}})
+				    Kept = Table.SelectColumns(Source, {"month_key", "provider_code", "attendances", "attendances_type1", "over_4hr", "over_4hr_type1", "within_4hr", "reports_4hr", "dta_4_12", "dta_12_plus", "emergency_admissions_ae", "emergency_admissions_total"}),
+				    Typed = Table.TransformColumnTypes(Kept, {{"month_key", Int64.Type}, {"provider_code", type text}, {"attendances", type number}, {"attendances_type1", type number}, {"over_4hr", type number}, {"over_4hr_type1", type number}, {"within_4hr", type number}, {"reports_4hr", type number}, {"dta_4_12", type number}, {"dta_12_plus", type number}, {"emergency_admissions_ae", type number}, {"emergency_admissions_total", type number}})
 				in
 				    Typed
 

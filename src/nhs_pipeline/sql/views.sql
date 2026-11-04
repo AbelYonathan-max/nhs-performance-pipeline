@@ -11,10 +11,12 @@ SELECT
     f.attendances_type1,
     f.over_4hr,
     f.within_4hr,
+    f.reports_4hr,
     f.dta_12_plus,
     f.emergency_admissions_total,
-    CASE WHEN f.attendances > 0 THEN 1.0 * f.within_4hr / f.attendances END AS pct_4hr,
-    CASE WHEN f.attendances_type1 > 0
+    CASE WHEN f.attendances > 0 AND f.reports_4hr = 1
+         THEN 1.0 * f.within_4hr / f.attendances END AS pct_4hr,
+    CASE WHEN f.attendances_type1 > 0 AND f.reports_4hr = 1
          THEN 1.0 * (f.attendances_type1 - f.over_4hr_type1) / f.attendances_type1 END AS pct_4hr_type1,
     CASE WHEN f.emergency_admissions_ae > 0
          THEN 1.0 * f.dta_12_plus / f.emergency_admissions_ae END AS pct_12hr_dta
@@ -29,7 +31,7 @@ SELECT
     SUM(f.within_4hr) AS within_4hr,
     SUM(f.over_4hr) AS over_4hr,
     SUM(f.dta_12_plus) AS dta_12_plus,
-    1.0 * SUM(f.within_4hr) / NULLIF(SUM(f.attendances), 0) AS pct_4hr
+    1.0 * SUM(f.within_4hr) / NULLIF(SUM(f.attendances * f.reports_4hr), 0) AS pct_4hr
 FROM fact_ae f
 JOIN dim_provider p ON p.provider_code = f.provider_code
 GROUP BY f.month_key, COALESCE(p.region_code, 'UNK');
@@ -44,9 +46,10 @@ SELECT
     SUM(dta_4_12) AS dta_4_12,
     SUM(dta_12_plus) AS dta_12_plus,
     SUM(emergency_admissions_total) AS emergency_admissions_total,
-    1.0 * SUM(within_4hr) / NULLIF(SUM(attendances), 0) AS pct_4hr,
-    1.0 * (SUM(attendances_type1) - SUM(over_4hr_type1)) / NULLIF(SUM(attendances_type1), 0)
-        AS pct_4hr_type1
+    SUM(attendances * reports_4hr) AS attendances_4hr,
+    1.0 * SUM(within_4hr) / NULLIF(SUM(attendances * reports_4hr), 0) AS pct_4hr,
+    1.0 * SUM((attendances_type1 - over_4hr_type1) * reports_4hr)
+        / NULLIF(SUM(attendances_type1 * reports_4hr), 0) AS pct_4hr_type1
 FROM fact_ae
 GROUP BY month_key;
 

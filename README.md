@@ -69,6 +69,41 @@ After changing a table, measure or visual, edit `powerbi/generate.py` and run
 validates the report against Microsoft's PBIR JSON schemas, and loads the model
 with Microsoft's Tabular Object Model (`powerbi/TmdlCheck`).
 
+## Results
+
+First full run, 4 November 2026: A&E April 2023 to September 2026, RTT April 2023
+to August 2026.
+
+- Loaded 655 organisations, 8,329 A&E rows and 760,041 RTT rows (provider ×
+  specialty × pathway type) from 83 files. All 14 data quality checks passed.
+- Figures match NHS England's published headlines, for example A&E 4-hour
+  performance of 74.6% in April 2023.
+- England, latest month:
+
+  | Measure | Latest | Same month last year | Target this year |
+  |---|---|---|---|
+  | A&E seen within 4 hours (Sep 2026) | 74.4% | 75.1% | 82% (not met) |
+  | 12-hour trolley waits (Sep 2026) | 50,582 | 44,765 | |
+  | RTT waiting list (Aug 2026) | 7.19 million | 7.35 million | |
+  | RTT waiting under 18 weeks (Aug 2026) | 65.2% | 60.9% | 70% (not met) |
+  | RTT waiting over 52 weeks (Aug 2026) | 112,958 (1.6%) | 192,024 (2.6%) | under 1% (not met) |
+
+- Forecast backtest (6 origins, 1 to 6 months ahead, mean absolute error):
+
+  | Measure | Gradient boosting | Same as last month | Same as a year ago | Used |
+  |---|---|---|---|---|
+  | A&E 4-hour % (points) | 2.66 | 3.18 | 3.78 | Gradient boosting |
+  | A&E attendances | 4.3% | 6.4% | 5.1% | Gradient boosting |
+  | RTT 18-week % (points) | 2.52 | 2.85 | 4.90 | Gradient boosting |
+  | RTT waiting list | 5.0% | 4.7% | 9.3% | Same as last month |
+
+- Data quirks handled: 14 trusts testing new A&E standards in April and May 2023
+  reported no 4-hour figures, so they are left out of 4-hour percentages for those
+  months; new RTT referrals come only as a total, with no weekly bands; providers
+  that appear only in the RTT file take their region from their integrated care
+  board.
+- The Excel pack has 2,916 live formulas and recalculates with no errors.
+
 ## Tests
 
 ```

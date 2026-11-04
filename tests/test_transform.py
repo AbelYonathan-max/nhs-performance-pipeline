@@ -1,3 +1,5 @@
+import io
+
 import numpy as np
 import pandas as pd
 import pytest
@@ -25,6 +27,17 @@ def test_parse_ae_totals_and_percentages():
     row = df[df.provider_code == "NLO12"].iloc[0]
     assert row.attendances == 2500 and row.over_4hr == 1 and row.attendances_type1 == 0
     assert (df.within_4hr + df.over_4hr == df.attendances).all()
+    assert (df.reports_4hr == 1).all()
+
+
+def test_parse_ae_site_not_reporting_4hr_is_left_out():
+    rng = np.random.default_rng(1)
+    raw = pd.read_csv(io.BytesIO(synthetic.ae_csv("2023-04", rng)), dtype=str)
+    over = [c for c in raw.columns if c.startswith("Attendances over 4hrs")]
+    raw.loc[0, over] = "0"  # a field-test site: no 4-hour data
+    df = transform.parse_ae(raw.to_csv(index=False).encode(), "2023-04")
+    assert df.reports_4hr.tolist()[0] == 0 and df.within_4hr.tolist()[0] == 0
+    assert df.reports_4hr.iloc[1:].eq(1).all()
 
 
 def test_parse_ae_missing_column_is_an_error():
@@ -48,6 +61,9 @@ def test_parse_rtt_sums_commissioners_and_builds_england():
     total = providers[(providers.part == "incomplete") & (providers.treatment_function_code == "C_999")]
     eng = england[(england.part == "incomplete") & (england.treatment_function_code == "C_999")]
     assert eng.total.iloc[0] == total.total.sum()
-    assert (providers.within_18 + providers.over_18 == providers.total).all()
+    banded = providers[providers.part != "new_periods"]
+    assert (banded.within_18 + banded.over_18 == banded.total).all()
+    starts = providers[(providers.part == "new_periods") & (providers.treatment_function_code == "C_999")]
+    assert (starts.total > 0).all()  # taken from "Total All"
     assert (providers.over_52 >= providers.over_65).all()
     assert set(providers.part) == set(transform.RTT_PARTS.values())

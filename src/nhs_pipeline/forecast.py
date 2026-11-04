@@ -26,6 +26,7 @@ HORIZON = 6
 BACKTEST_ORIGINS = 6
 MIN_HISTORY = 15
 ENGLAND = "ENG"
+MIN_SPREAD = {"pct": 0.01, "count": 0.02}
 
 
 @dataclass(frozen=True)
@@ -186,8 +187,9 @@ def anomalies(metric: Metric, series: dict[str, pd.Series], z_limit: float = 4.0
         d = to_change(metric, y)
         med = np.median(d)
         mad = np.median(np.abs(d - med)) * 1.4826
-        if mad == 0:
-            continue
+        # Very steady series would flag tiny moves: never count less than
+        # 1 percentage point (rates) or 2% (counts) as one unit of spread.
+        mad = max(mad, MIN_SPREAD[metric.kind])
         z = (d - med) / mad
         for i in np.flatnonzero(np.abs(z) > z_limit):
             expected = apply_change(metric, y[i], med)

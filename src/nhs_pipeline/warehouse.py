@@ -50,7 +50,7 @@ def sector(code: str, name: str) -> str:
         return "NHS trust"
     if "NHS" in str(name).upper():
         return "Other NHS"
-    return "Independent sector"
+    return "Other provider"
 
 
 def month_key(period: str) -> int:
@@ -95,7 +95,12 @@ def dim_provider(ae: pd.DataFrame, rtt: pd.DataFrame) -> pd.DataFrame:
     d = a.join(r, how="outer")
     d["provider_name"] = d["provider_name"].fillna(d["rtt_name"])
     d["region_code"] = d["region_name"].map(region_code)
-    d["region_code"] = d["region_code"].fillna(d["rtt_parent"].map(region_code))
+    # RTT gives the ICB, not the region. Each ICB takes the region most of its
+    # A&E-reporting providers sit in; failing that, words in the ICB's name.
+    linked = d.dropna(subset=["region_code", "rtt_parent"])
+    icb_region = linked.groupby("rtt_parent")["region_code"].agg(lambda s: s.mode().iloc[0])
+    from_icb = d["rtt_parent"].map(icb_region).fillna(d["rtt_parent"].map(region_code))
+    d["region_code"] = d["region_code"].fillna(from_icb)
     d["sector"] = [sector(c, n) for c, n in zip(d.index, d["provider_name"], strict=True)]
     d["has_type1_ae"] = d["has_type1"].fillna(0).astype(int)
     d["in_ae"] = d["first_ae"].notna().astype(int)
@@ -150,6 +155,12 @@ def quality_checks(ae: pd.DataFrame, rtt: pd.DataFrame, rtt_eng: pd.DataFrame) -
     add("ae", "over 4 hours <= attendances", "error", bad == 0, f"{bad} rows")
     bad = int((ae["dta_12_plus"] > ae["emergency_admissions_total"]).sum())
     add("ae", "12-hour waits <= emergency admissions", "warning", bad == 0, f"{bad} rows")
+    missing4 = ae[ae["reports_4hr"] == 0]
+    latest = ae["period"].max()
+    add("ae", "4-hour measure reported by every major A&E in the latest month", "warning",
+        bool((missing4["period"] != latest).all()),
+        f"{len(missing4)} rows left out of 4-hour figures"
+        + (f" ({missing4['period'].min()} to {missing4['period'].max()})" if len(missing4) else ""))
     nat = ae.groupby("period")["attendances"].sum()
     swing = nat.pct_change().abs().max()
     add("ae", "England attendances month-on-month change under 25%", "warning",

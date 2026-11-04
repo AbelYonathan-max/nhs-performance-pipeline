@@ -144,10 +144,12 @@ MEASURES = [
     # A&E
     Measure("Attendances", "SUM ( 'A&E'[attendances] )", "#,0", "A&E"),
     Measure("Within 4 hours", "SUM ( 'A&E'[within_4hr] )", "#,0", "A&E"),
-    Measure("A&E 4hr %", "DIVIDE ( [Within 4 hours], [Attendances] )", "0.0%", "A&E",
-            "Share of all A&E attendances admitted, transferred or discharged within 4 hours."),
-    Measure("Type 1 4hr %", "DIVIDE ( SUM ( 'A&E'[attendances_type1] ) - SUM ( 'A&E'[over_4hr_type1] ), "
-            "SUM ( 'A&E'[attendances_type1] ) )", "0.0%", "A&E",
+    Measure("A&E 4hr %", "DIVIDE ( [Within 4 hours], CALCULATE ( [Attendances], 'A&E'[reports_4hr] = 1 ) )",
+            "0.0%", "A&E",
+            "Share of all A&E attendances admitted, transferred or discharged within 4 hours. "
+            "Sites that did not report the 4-hour measure that month are left out."),
+    Measure("Type 1 4hr %", "CALCULATE ( DIVIDE ( SUM ( 'A&E'[attendances_type1] ) - SUM ( 'A&E'[over_4hr_type1] ), "
+            "SUM ( 'A&E'[attendances_type1] ) ), 'A&E'[reports_4hr] = 1 )", "0.0%", "A&E",
             "As A&E 4hr % but major emergency departments (type 1) only."),
     Measure("12hr trolley waits", "SUM ( 'A&E'[dta_12_plus] )", "#,0", "A&E",
             "Patients who waited over 12 hours from decision to admit to admission."),
@@ -287,7 +289,7 @@ TABLES = [
         key("month_key", "month_key"), key("provider_code", "provider_code"),
         num("attendances", "attendances"), num("attendances_type1", "attendances_type1"),
         num("over_4hr", "over_4hr"), num("over_4hr_type1", "over_4hr_type1"),
-        num("within_4hr", "within_4hr"), num("dta_4_12", "dta_4_12"), num("dta_12_plus", "dta_12_plus"),
+        num("within_4hr", "within_4hr"), num("reports_4hr", "reports_4hr"), num("dta_4_12", "dta_4_12"), num("dta_12_plus", "dta_12_plus"),
         num("emergency_admissions_ae", "emergency_admissions_ae"),
         num("emergency_admissions_total", "emergency_admissions_total"),
     ], description="Monthly A&E attendances and 4-hour performance by organisation."),
