@@ -20,13 +20,13 @@
                 "Measure": {
                   "Expression": {
                     "SourceRef": {
-                      "Entity": "Measures"
+                      "Entity": "Key measures"
                     }
                   },
                   "Property": "Trusts meeting 4hr target"
                 }
               },
-              "queryRef": "Measures.Trusts meeting 4hr target",
+              "queryRef": "Key measures.Trusts meeting 4hr target",
               "nativeQueryRef": "Trusts meeting 4hr target"
             }
           ]

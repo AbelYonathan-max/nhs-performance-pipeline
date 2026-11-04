@@ -20,13 +20,13 @@
                 "Measure": {
                   "Expression": {
                     "SourceRef": {
-                      "Entity": "Measures"
+                      "Entity": "Key measures"
                     }
                   },
                   "Property": "A&E rank"
                 }
               },
-              "queryRef": "Measures.A&E rank",
+              "queryRef": "Key measures.A&E rank",
               "nativeQueryRef": "A&E rank"
             }
           ]

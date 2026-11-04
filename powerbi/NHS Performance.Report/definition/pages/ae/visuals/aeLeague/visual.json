@@ -48,13 +48,13 @@
                 "Measure": {
                   "Expression": {
                     "SourceRef": {
-                      "Entity": "Measures"
+                      "Entity": "Key measures"
                     }
                   },
                   "Property": "A&E rank"
                 }
               },
-              "queryRef": "Measures.A&E rank",
+              "queryRef": "Key measures.A&E rank",
               "nativeQueryRef": "A&E rank"
             },
             {
@@ -62,13 +62,13 @@
                 "Measure": {
                   "Expression": {
                     "SourceRef": {
-                      "Entity": "Measures"
+                      "Entity": "Key measures"
                     }
                   },
                   "Property": "A&E 4hr % (latest)"
                 }
               },
-              "queryRef": "Measures.A&E 4hr % (latest)",
+              "queryRef": "Key measures.A&E 4hr % (latest)",
               "nativeQueryRef": "A&E 4hr % (latest)"
             },
             {
@@ -76,13 +76,13 @@
                 "Measure": {
                   "Expression": {
                     "SourceRef": {
-                      "Entity": "Measures"
+                      "Entity": "Key measures"
                     }
                   },
                   "Property": "A&E 4hr % (year before)"
                 }
               },
-              "queryRef": "Measures.A&E 4hr % (year before)",
+              "queryRef": "Key measures.A&E 4hr % (year before)",
               "nativeQueryRef": "A&E 4hr % (year before)"
             },
             {
@@ -90,13 +90,13 @@
                 "Measure": {
                   "Expression": {
                     "SourceRef": {
-                      "Entity": "Measures"
+                      "Entity": "Key measures"
                     }
                   },
                   "Property": "A&E 4hr change on year"
                 }
               },
-              "queryRef": "Measures.A&E 4hr change on year",
+              "queryRef": "Key measures.A&E 4hr change on year",
               "nativeQueryRef": "A&E 4hr change on year"
             },
             {
@@ -104,13 +104,13 @@
                 "Measure": {
                   "Expression": {
                     "SourceRef": {
-                      "Entity": "Measures"
+                      "Entity": "Key measures"
                     }
                   },
                   "Property": "Attendances (latest)"
                 }
               },
-              "queryRef": "Measures.Attendances (latest)",
+              "queryRef": "Key measures.Attendances (latest)",
               "nativeQueryRef": "Attendances (latest)"
             },
             {
@@ -118,13 +118,13 @@
                 "Measure": {
                   "Expression": {
                     "SourceRef": {
-                      "Entity": "Measures"
+                      "Entity": "Key measures"
                     }
                   },
                   "Property": "12hr trolley waits (latest)"
                 }
               },
-              "queryRef": "Measures.12hr trolley waits (latest)",
+              "queryRef": "Key measures.12hr trolley waits (latest)",
               "nativeQueryRef": "12hr trolley waits (latest)"
             }
           ]
@@ -137,7 +137,7 @@
               "Measure": {
                 "Expression": {
                   "SourceRef": {
-                    "Entity": "Measures"
+                    "Entity": "Key measures"
                   }
                 },
                 "Property": "A&E 4hr % (latest)"

@@ -20,13 +20,13 @@
                 "Measure": {
                   "Expression": {
                     "SourceRef": {
-                      "Entity": "Measures"
+                      "Entity": "Key measures"
                     }
                   },
                   "Property": "Waiting list"
                 }
               },
-              "queryRef": "Measures.Waiting list",
+              "queryRef": "Key measures.Waiting list",
               "nativeQueryRef": "Waiting list"
             }
           ]

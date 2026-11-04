@@ -20,13 +20,13 @@
                 "Measure": {
                   "Expression": {
                     "SourceRef": {
-                      "Entity": "Measures"
+                      "Entity": "Key measures"
                     }
                   },
                   "Property": "RTT 18wk %"
                 }
               },
-              "queryRef": "Measures.RTT 18wk %",
+              "queryRef": "Key measures.RTT 18wk %",
               "nativeQueryRef": "RTT 18wk %"
             }
           ]

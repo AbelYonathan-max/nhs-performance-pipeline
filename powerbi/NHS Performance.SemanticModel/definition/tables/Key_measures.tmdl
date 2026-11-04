@@ -1,6 +1,6 @@
 /// All report measures, grouped in folders.
-table Measures
-	lineageTag: 41181fbe-6634-5cd9-aea1-ff555378b456
+table 'Key measures'
+	lineageTag: c3a1205d-97bf-5d3a-a384-dfa593cefe55
 
 	measure Attendances = SUM ( 'A&E'[attendances] )
 		formatString: #,0
@@ -299,13 +299,13 @@ table Measures
 	column Placeholder
 		dataType: string
 		isHidden
-		lineageTag: 68de74af-312a-5882-8805-1ae264624d16
+		lineageTag: ab184a5d-5472-57e0-b183-ec9389185b9f
 		summarizeBy: none
 		sourceColumn: Placeholder
 
 		annotation SummarizationSetBy = Automatic
 
-	partition Measures = m
+	partition 'Key measures' = m
 		mode: import
 		source =
 				let

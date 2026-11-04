@@ -48,13 +48,13 @@
                 "Measure": {
                   "Expression": {
                     "SourceRef": {
-                      "Entity": "Measures"
+                      "Entity": "Key measures"
                     }
                   },
                   "Property": "RTT rank"
                 }
               },
-              "queryRef": "Measures.RTT rank",
+              "queryRef": "Key measures.RTT rank",
               "nativeQueryRef": "RTT rank"
             },
             {
@@ -62,13 +62,13 @@
                 "Measure": {
                   "Expression": {
                     "SourceRef": {
-                      "Entity": "Measures"
+                      "Entity": "Key measures"
                     }
                   },
                   "Property": "Waiting list"
                 }
               },
-              "queryRef": "Measures.Waiting list",
+              "queryRef": "Key measures.Waiting list",
               "nativeQueryRef": "Waiting list"
             },
             {
@@ -76,13 +76,13 @@
                 "Measure": {
                   "Expression": {
                     "SourceRef": {
-                      "Entity": "Measures"
+                      "Entity": "Key measures"
                     }
                   },
                   "Property": "RTT 18wk %"
                 }
               },
-              "queryRef": "Measures.RTT 18wk %",
+              "queryRef": "Key measures.RTT 18wk %",
               "nativeQueryRef": "RTT 18wk %"
             },
             {
@@ -90,13 +90,13 @@
                 "Measure": {
                   "Expression": {
                     "SourceRef": {
-                      "Entity": "Measures"
+                      "Entity": "Key measures"
                     }
                   },
                   "Property": "RTT 18wk change on year"
                 }
               },
-              "queryRef": "Measures.RTT 18wk change on year",
+              "queryRef": "Key measures.RTT 18wk change on year",
               "nativeQueryRef": "RTT 18wk change on year"
             },
             {
@@ -104,13 +104,13 @@
                 "Measure": {
                   "Expression": {
                     "SourceRef": {
-                      "Entity": "Measures"
+                      "Entity": "Key measures"
                     }
                   },
                   "Property": "Over 52 weeks"
                 }
               },
-              "queryRef": "Measures.Over 52 weeks",
+              "queryRef": "Key measures.Over 52 weeks",
               "nativeQueryRef": "Over 52 weeks"
             },
             {
@@ -118,13 +118,13 @@
                 "Measure": {
                   "Expression": {
                     "SourceRef": {
-                      "Entity": "Measures"
+                      "Entity": "Key measures"
                     }
                   },
                   "Property": "Share over 52 weeks"
                 }
               },
-              "queryRef": "Measures.Share over 52 weeks",
+              "queryRef": "Key measures.Share over 52 weeks",
               "nativeQueryRef": "Share over 52 weeks"
             },
             {
@@ -132,13 +132,13 @@
                 "Measure": {
                   "Expression": {
                     "SourceRef": {
-                      "Entity": "Measures"
+                      "Entity": "Key measures"
                     }
                   },
                   "Property": "Median wait (weeks)"
                 }
               },
-              "queryRef": "Measures.Median wait (weeks)",
+              "queryRef": "Key measures.Median wait (weeks)",
               "nativeQueryRef": "Median wait (weeks)"
             }
           ]
@@ -151,7 +151,7 @@
               "Measure": {
                 "Expression": {
                   "SourceRef": {
-                    "Entity": "Measures"
+                    "Entity": "Key measures"
                   }
                 },
                 "Property": "RTT 18wk %"

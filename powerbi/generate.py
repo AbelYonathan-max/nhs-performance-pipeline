@@ -105,6 +105,9 @@ def num(name: str, source: str, fmt: str = "#,0", hidden: bool = True) -> Column
     return Column(name, source, "double", hidden=hidden, fmt=fmt, summarize="sum")
 
 
+# Power BI Desktop refuses a table named "Measures".
+MEASURE_TABLE = "Key measures"
+
 LATEST_AE = "CALCULATE ( MAX ( 'A&E'[month_key] ) )"
 LATEST_RTT = "CALCULATE ( MAX ( RTT[month_key] ) )"
 
@@ -452,7 +455,7 @@ def table_tmdl(t: TableDef) -> str:
 
 
 def measures_table() -> TableDef:
-    t = TableDef("Measures", None, [Column("Placeholder", "Placeholder", "string", hidden=True)],
+    t = TableDef(MEASURE_TABLE, None, [Column("Placeholder", "Placeholder", "string", hidden=True)],
                  measures=MEASURES, description="All report measures, grouped in folders.")
     t.m = 'let\n    Source = #table(type table [Placeholder = text], {})\nin\n    Source'
     return t
@@ -550,7 +553,7 @@ def proj(entity: str, prop: str, kind: str = "Measure", display: str | None = No
 
 
 def M(prop: str, display: str | None = None) -> dict:
-    return proj("Measures", prop, "Measure", display)
+    return proj(MEASURE_TABLE, prop, "Measure", display)
 
 
 def C(entity: str, prop: str, display: str | None = None) -> dict:
@@ -625,7 +628,7 @@ def line(name, x, y, w, h, category, measures, title, subtitle=None, colors=None
     objs: dict = {"legend": [{"properties": {"show": lit(True), "position": lit("Top")}}]}
     if colors:
         objs["dataPoint"] = [
-            {"properties": {"fill": color(c)}, "selector": {"metadata": f"Measures.{m}"}}
+            {"properties": {"fill": color(c)}, "selector": {"metadata": f"{MEASURE_TABLE}.{m}"}}
             for m, c in zip(measures, colors, strict=True)
         ]
     if pct:
@@ -639,7 +642,7 @@ def bar(name, x, y, w, h, category, measure, title, subtitle=None, kind="cluster
     v = Visual(name, kind, x, y, w, h, {"Category": [C(*category)], "Y": [M(measure)]}, title, subtitle,
                {"dataPoint": [{"properties": {"fill": color(NHS_BLUE)}}],
                 "labels": [{"properties": {"show": lit(True)}}]})
-    v.sort = [{"field": field_ref("Measures", measure, "Measure"),
+    v.sort = [{"field": field_ref(MEASURE_TABLE, measure, "Measure"),
                "direction": "Descending" if sort_desc else "Ascending"}]
     return v
 
@@ -651,7 +654,7 @@ def table(name, x, y, w, h, columns, measures, title, subtitle=None, sort_measur
                 "columnHeaders": [{"properties": {"fontColor": color("#FFFFFF"),
                                                   "backColor": color(NHS_BLUE), "bold": lit(True)}}]})
     if sort_measure:
-        v.sort = [{"field": field_ref("Measures", sort_measure, "Measure"),
+        v.sort = [{"field": field_ref(MEASURE_TABLE, sort_measure, "Measure"),
                    "direction": "Descending" if desc else "Ascending"}]
     return v
 

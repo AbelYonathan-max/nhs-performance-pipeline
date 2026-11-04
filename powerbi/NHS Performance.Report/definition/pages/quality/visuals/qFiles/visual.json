@@ -20,13 +20,13 @@
                 "Measure": {
                   "Expression": {
                     "SourceRef": {
-                      "Entity": "Measures"
+                      "Entity": "Key measures"
                     }
                   },
                   "Property": "Source files"
                 }
               },
-              "queryRef": "Measures.Source files",
+              "queryRef": "Key measures.Source files",
               "nativeQueryRef": "Source files"
             }
           ]

@@ -20,13 +20,13 @@
                 "Measure": {
                   "Expression": {
                     "SourceRef": {
-                      "Entity": "Measures"
+                      "Entity": "Key measures"
                     }
                   },
                   "Property": "Unusual months"
                 }
               },
-              "queryRef": "Measures.Unusual months",
+              "queryRef": "Key measures.Unusual months",
               "nativeQueryRef": "Unusual months"
             }
           ]

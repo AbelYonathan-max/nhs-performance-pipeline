@@ -38,13 +38,13 @@
                 "Measure": {
                   "Expression": {
                     "SourceRef": {
-                      "Entity": "Measures"
+                      "Entity": "Key measures"
                     }
                   },
                   "Property": "Actual"
                 }
               },
-              "queryRef": "Measures.Actual",
+              "queryRef": "Key measures.Actual",
               "nativeQueryRef": "Actual"
             },
             {
@@ -52,13 +52,13 @@
                 "Measure": {
                   "Expression": {
                     "SourceRef": {
-                      "Entity": "Measures"
+                      "Entity": "Key measures"
                     }
                   },
                   "Property": "Forecast"
                 }
               },
-              "queryRef": "Measures.Forecast",
+              "queryRef": "Key measures.Forecast",
               "nativeQueryRef": "Forecast"
             },
             {
@@ -66,13 +66,13 @@
                 "Measure": {
                   "Expression": {
                     "SourceRef": {
-                      "Entity": "Measures"
+                      "Entity": "Key measures"
                     }
                   },
                   "Property": "Forecast low (80%)"
                 }
               },
-              "queryRef": "Measures.Forecast low (80%)",
+              "queryRef": "Key measures.Forecast low (80%)",
               "nativeQueryRef": "Forecast low (80%)"
             },
             {
@@ -80,13 +80,13 @@
                 "Measure": {
                   "Expression": {
                     "SourceRef": {
-                      "Entity": "Measures"
+                      "Entity": "Key measures"
                     }
                   },
                   "Property": "Forecast high (80%)"
                 }
               },
-              "queryRef": "Measures.Forecast high (80%)",
+              "queryRef": "Key measures.Forecast high (80%)",
               "nativeQueryRef": "Forecast high (80%)"
             }
           ]
@@ -130,7 +130,7 @@
             }
           },
           "selector": {
-            "metadata": "Measures.Actual"
+            "metadata": "Key measures.Actual"
           }
         },
         {
@@ -148,7 +148,7 @@
             }
           },
           "selector": {
-            "metadata": "Measures.Forecast"
+            "metadata": "Key measures.Forecast"
           }
         },
         {
@@ -166,7 +166,7 @@
             }
           },
           "selector": {
-            "metadata": "Measures.Forecast low (80%)"
+            "metadata": "Key measures.Forecast low (80%)"
           }
         },
         {
@@ -184,7 +184,7 @@
             }
           },
           "selector": {
-            "metadata": "Measures.Forecast high (80%)"
+            "metadata": "Key measures.Forecast high (80%)"
           }
         }
       ]

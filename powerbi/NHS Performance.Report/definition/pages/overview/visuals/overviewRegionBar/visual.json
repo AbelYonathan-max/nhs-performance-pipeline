@@ -38,13 +38,13 @@
                 "Measure": {
                   "Expression": {
                     "SourceRef": {
-                      "Entity": "Measures"
+                      "Entity": "Key measures"
                     }
                   },
                   "Property": "A&E 4hr % (latest)"
                 }
               },
-              "queryRef": "Measures.A&E 4hr % (latest)",
+              "queryRef": "Key measures.A&E 4hr % (latest)",
               "nativeQueryRef": "A&E 4hr % (latest)"
             }
           ]
@@ -57,7 +57,7 @@
               "Measure": {
                 "Expression": {
                   "SourceRef": {
-                    "Entity": "Measures"
+                    "Entity": "Key measures"
                   }
                 },
                 "Property": "A&E 4hr % (latest)"

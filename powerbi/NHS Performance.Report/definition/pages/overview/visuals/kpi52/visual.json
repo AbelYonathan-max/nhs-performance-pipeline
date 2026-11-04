@@ -20,13 +20,13 @@
                 "Measure": {
                   "Expression": {
                     "SourceRef": {
-                      "Entity": "Measures"
+                      "Entity": "Key measures"
                     }
                   },
                   "Property": "Over 52 weeks"
                 }
               },
-              "queryRef": "Measures.Over 52 weeks",
+              "queryRef": "Key measures.Over 52 weeks",
               "nativeQueryRef": "Over 52 weeks"
             }
           ]

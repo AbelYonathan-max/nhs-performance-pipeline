@@ -38,13 +38,13 @@
                 "Measure": {
                   "Expression": {
                     "SourceRef": {
-                      "Entity": "Measures"
+                      "Entity": "Key measures"
                     }
                   },
                   "Property": "Specialty over 52 weeks"
                 }
               },
-              "queryRef": "Measures.Specialty over 52 weeks",
+              "queryRef": "Key measures.Specialty over 52 weeks",
               "nativeQueryRef": "Specialty over 52 weeks"
             }
           ]
@@ -57,7 +57,7 @@
               "Measure": {
                 "Expression": {
                   "SourceRef": {
-                    "Entity": "Measures"
+                    "Entity": "Key measures"
                   }
                 },
                 "Property": "Specialty over 52 weeks"

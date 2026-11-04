@@ -20,13 +20,13 @@
                 "Measure": {
                   "Expression": {
                     "SourceRef": {
-                      "Entity": "Measures"
+                      "Entity": "Key measures"
                     }
                   },
                   "Property": "A&E 4hr change on year"
                 }
               },
-              "queryRef": "Measures.A&E 4hr change on year",
+              "queryRef": "Key measures.A&E 4hr change on year",
               "nativeQueryRef": "A&E 4hr change on year"
             }
           ]

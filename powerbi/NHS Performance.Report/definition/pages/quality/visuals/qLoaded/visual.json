@@ -20,13 +20,13 @@
                 "Measure": {
                   "Expression": {
                     "SourceRef": {
-                      "Entity": "Measures"
+                      "Entity": "Key measures"
                     }
                   },
                   "Property": "Last loaded"
                 }
               },
-              "queryRef": "Measures.Last loaded",
+              "queryRef": "Key measures.Last loaded",
               "nativeQueryRef": "Last loaded"
             }
           ]

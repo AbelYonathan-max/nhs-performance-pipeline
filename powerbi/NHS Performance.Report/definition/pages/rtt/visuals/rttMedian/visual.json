@@ -20,13 +20,13 @@
                 "Measure": {
                   "Expression": {
                     "SourceRef": {
-                      "Entity": "Measures"
+                      "Entity": "Key measures"
                     }
                   },
                   "Property": "Median wait (weeks)"
                 }
               },
-              "queryRef": "Measures.Median wait (weeks)",
+              "queryRef": "Key measures.Median wait (weeks)",
               "nativeQueryRef": "Median wait (weeks)"
             }
           ]

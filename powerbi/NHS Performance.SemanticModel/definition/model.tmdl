@@ -6,11 +6,11 @@ model Model
 		legacyRedirects
 		returnErrorValuesAsNull
 
-annotation PBI_QueryOrder = ["DataRoot", "LoadParquet", "Measures", "Month", "Region", "Organisation", "Specialty", "A&E", "RTT", "RTT specialty", "RTT England", "Forecast", "Model scores", "Targets", "Data checks", "Unusual months", "Load log"]
+annotation PBI_QueryOrder = ["DataRoot", "LoadParquet", "Key measures", "Month", "Region", "Organisation", "Specialty", "A&E", "RTT", "RTT specialty", "RTT England", "Forecast", "Model scores", "Targets", "Data checks", "Unusual months", "Load log"]
 
 annotation __PBI_TimeIntelligenceEnabled = 0
 
-ref table Measures
+ref table 'Key measures'
 ref table Month
 ref table Region
 ref table Organisation
