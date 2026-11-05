@@ -1,0 +1,5 @@
+"metric","months_compared","months_missing","max_rel_diff","passed"
+"ae_4hr_pct",42,0,0,TRUE
+"ae_attendances",42,0,0,TRUE
+"rtt_18wk_pct",41,0,0,TRUE
+"rtt_waiting_list",41,0,0,TRUE

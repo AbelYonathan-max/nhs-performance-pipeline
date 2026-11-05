@@ -24,6 +24,11 @@ jobs:
         with:
           python-version: "3.13"
           cache: pip
+      - name: Install R for the independent trend check
+        run: |
+          sudo apt-get update -qq
+          sudo apt-get install -y -qq --no-install-recommends r-base-core r-cran-ggplot2
+          sudo Rscript -e 'install.packages("nanoparquet", repos = "https://cloud.r-project.org")'
       - run: pip install -e ".[dev]"
       - run: ruff check src tests powerbi
       - run: pytest -q
